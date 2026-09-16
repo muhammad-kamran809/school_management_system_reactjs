@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+// import api from "../../../services/api";
+import { mockStorage } from "../../../services/mockData";
 
 function AcademicYears() {
     const [academicYears, setAcademicYears] = useState([]);
@@ -25,8 +27,13 @@ function AcademicYears() {
             setLoading(true);
 
             const response = await api.get('/academic-years');
+            // API call commented out:
+            // const response = await api.get('/academic-years');
+            // setAcademicYears(response.data.data || response.data);
 
             setAcademicYears(response.data.data || response.data);
+            const data = mockStorage.getAcademicYears();
+            setAcademicYears(data);
         } catch (error) {
             console.error(error);
 
@@ -41,6 +48,7 @@ function AcademicYears() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchAcademicYears();
     }, []);
 
@@ -99,6 +107,9 @@ function AcademicYears() {
         try {
             if (editingId) {
                 await api.put(`/academic-years/${editingId}`, formData);
+                // API call commented out:
+                // await api.put(`/academic-years/${editingId}`, formData);
+                mockStorage.updateAcademicYear(editingId, formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -109,6 +120,9 @@ function AcademicYears() {
                 });
             } else {
                 await api.post('/academic-years', formData);
+                // API call commented out:
+                // await api.post('/academic-years', formData);
+                mockStorage.addAcademicYear(formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -174,6 +188,9 @@ function AcademicYears() {
 
         try {
             await api.delete(`/academic-years/${id}`);
+            // API call commented out:
+            // await api.delete(`/academic-years/${id}`);
+            mockStorage.deleteAcademicYear(id);
 
             Swal.fire({
                 icon: 'success',
@@ -288,7 +305,7 @@ function AcademicYears() {
 
                                                 <td>
                                                     {academicYear.status ===
-                                                    'active' ? (
+                                                        'active' ? (
                                                         <span className="status-badge active">
                                                             Active
                                                         </span>
@@ -370,11 +387,10 @@ function AcademicYears() {
                                         <input
                                             type="text"
                                             name="name"
-                                            className={`form-control ${
-                                                errors.name
+                                            className={`form-control ${errors.name
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.name}
                                             onChange={handleChange}
                                             placeholder="Example: 2026-2027"
@@ -396,11 +412,10 @@ function AcademicYears() {
                                         <input
                                             type="date"
                                             name="start_date"
-                                            className={`form-control ${
-                                                errors.start_date
+                                            className={`form-control ${errors.start_date
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.start_date}
                                             onChange={handleChange}
                                         />
@@ -421,11 +436,10 @@ function AcademicYears() {
                                         <input
                                             type="date"
                                             name="end_date"
-                                            className={`form-control ${
-                                                errors.end_date
+                                            className={`form-control ${errors.end_date
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.end_date}
                                             onChange={handleChange}
                                         />
@@ -445,11 +459,10 @@ function AcademicYears() {
 
                                         <select
                                             name="status"
-                                            className={`form-select ${
-                                                errors.status
+                                            className={`form-select ${errors.status
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.status}
                                             onChange={handleChange}
                                         >

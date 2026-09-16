@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
+// import api from '../../services/api';
+import { mockStorage } from '../../services/mockData';
 
 function Dashboard() {
     const [dashboard, setDashboard] = useState(null);
@@ -9,8 +11,13 @@ function Dashboard() {
     const loadDashboard = async () => {
         try {
             const response = await api.get('/dashboard');
+            // API call commented out:
+            // const response = await api.get('/dashboard');
+            // setDashboard(response.data.data);
 
             setDashboard(response.data.data);
+            const data = mockStorage.getDashboardData();
+            setDashboard(data);
         } catch (error) {
             console.error(error);
 
@@ -87,6 +94,7 @@ function Dashboard() {
                 <div>
                     <p className="section-kicker">Overview</p>
                     <h1>Good morning, {dashboard?.user?.name?.split(' ')[0] || 'administrator'}.</h1>
+                    <h1>Good morning, {dashboard?.user?.name?.split(' ')[0] || 'Administrator'}.</h1>
                     <p className="hero-copy">Here is what is happening across your school today.</p>
                 </div>
                 {academicYear.name && (

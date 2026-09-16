@@ -47,8 +47,8 @@ function App() {
                             element={<AcademicYears />}
                         />
 
-                          <Route
-                                path="/classes"
+                        <Route
+                            path="/classes"
                             element={<Classes />}
                         />
 
@@ -74,6 +74,24 @@ function App() {
                                 element={<AdminPage title={page.title} icon={page.icon} />}
                             />
                         ))}
+                        {adminPages
+                            .filter(
+                                (page) =>
+                                    ![
+                                        '/academic-years',
+                                        '/classes',
+                                        '/sections',
+                                        '/subjects',
+                                        '/students',
+                                    ].includes(page.path)
+                            )
+                            .map((page) => (
+                                <Route
+                                    key={page.path}
+                                    path={page.path}
+                                    element={<AdminPage title={page.title} icon={page.icon} />}
+                                />
+                            ))}
 
                     </Route>
 

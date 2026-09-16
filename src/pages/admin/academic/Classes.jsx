@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+// import api from "../../../services/api";
+import { mockStorage } from "../../../services/mockData";
 
 function Classes() {
     const [classes, setClasses] = useState([]);
@@ -24,8 +26,13 @@ function Classes() {
             setLoading(true);
 
             const response = await api.get('/classes');
+            // API call commented out:
+            // const response = await api.get('/classes');
+            // setClasses(response.data.data || response.data);
 
             setClasses(response.data.data || response.data);
+            const data = mockStorage.getClasses();
+            setClasses(data);
         } catch (error) {
             console.error(error);
 
@@ -40,6 +47,7 @@ function Classes() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchClasses();
     }, []);
 
@@ -96,6 +104,9 @@ function Classes() {
         try {
             if (editingId) {
                 await api.put(`/classes/${editingId}`, formData);
+                // API call commented out:
+                // await api.put(`/classes/${editingId}`, formData);
+                mockStorage.updateClass(editingId, formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -106,6 +117,9 @@ function Classes() {
                 });
             } else {
                 await api.post('/classes', formData);
+                // API call commented out:
+                // await api.post('/classes', formData);
+                mockStorage.addClass(formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -155,70 +169,73 @@ function Classes() {
     };
 
 
-   // Delete class
-const handleDelete = async (id) => {
-    const result = await Swal.fire({
-        title: 'Delete Class?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        cancelButtonText: 'Cancel',
-    });
-
-    if (!result.isConfirmed) {
-        return;
-    }
-
-    try {
-        await api.delete(`/classes/${id}`);
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Deleted',
-            text: 'Class deleted successfully.',
-            timer: 1500,
-            showConfirmButton: false,
+    // Delete class
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: 'Delete Class?',
+            text: 'This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
         });
 
-        await fetchClasses();
-
-    } catch (error) {
-        console.error('Delete class error:', error);
-
-        // Laravel validation / foreign key error
-        if (error.response) {
-            console.log('Status:', error.response.status);
-            console.log('Response:', error.response.data);
-
-            const message =
-                error.response.data.message ||
-                'Failed to delete class.';
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Cannot Delete Class',
-                text: message,
-            });
-
-        } else if (error.request) {
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Server Error',
-                text: 'The Laravel server did not respond.',
-            });
-
-        } else {
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to delete class.',
-            });
+        if (!result.isConfirmed) {
+            return;
         }
-    }
-};
+
+        try {
+            await api.delete(`/classes/${id}`);
+            // API call commented out:
+            // await api.delete(`/classes/${id}`);
+            mockStorage.deleteClass(id);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted',
+                text: 'Class deleted successfully.',
+                timer: 1500,
+                showConfirmButton: false,
+            });
+
+            await fetchClasses();
+
+        } catch (error) {
+            console.error('Delete class error:', error);
+
+            // Laravel validation / foreign key error
+            if (error.response) {
+                console.log('Status:', error.response.status);
+                console.log('Response:', error.response.data);
+
+                const message =
+                    error.response.data.message ||
+                    'Failed to delete class.';
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Cannot Delete Class',
+                    text: message,
+                });
+
+            } else if (error.request) {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: 'The Laravel server did not respond.',
+                });
+
+            } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to delete class.',
+                });
+            }
+        }
+    };
 
     return (
         <div className="academic-years-page">
@@ -302,7 +319,7 @@ const handleDelete = async (id) => {
 
                                                 <td>
                                                     {schoolClass.status ===
-                                                    'active' ? (
+                                                        'active' ? (
                                                         <span className="status-badge active">
                                                             Active
                                                         </span>
@@ -392,11 +409,10 @@ const handleDelete = async (id) => {
                                         <input
                                             type="text"
                                             name="name"
-                                            className={`form-control ${
-                                                errors.name
+                                            className={`form-control ${errors.name
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.name}
                                             onChange={handleChange}
                                             placeholder="Example: Class 1"
@@ -418,11 +434,10 @@ const handleDelete = async (id) => {
                                         <textarea
                                             name="description"
                                             rows="3"
-                                            className={`form-control ${
-                                                errors.description
+                                            className={`form-control ${errors.description
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.description}
                                             onChange={handleChange}
                                             placeholder="Enter class description"
@@ -443,11 +458,10 @@ const handleDelete = async (id) => {
 
                                         <select
                                             name="status"
-                                            className={`form-select ${
-                                                errors.status
+                                            className={`form-select ${errors.status
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={formData.status}
                                             onChange={handleChange}
                                         >

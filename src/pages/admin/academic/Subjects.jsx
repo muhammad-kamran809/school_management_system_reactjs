@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+// import api from "../../../services/api";
+import { mockStorage } from "../../../services/mockData";
 
 function Subjects() {
     const [subjects, setSubjects] = useState([]);
@@ -28,8 +30,13 @@ function Subjects() {
             setLoading(true);
 
             const response = await api.get('/subjects');
+            // API call commented out:
+            // const response = await api.get('/subjects');
+            // setSubjects(response.data.data || response.data);
 
             setSubjects(response.data.data || response.data);
+            const data = mockStorage.getSubjects();
+            setSubjects(data);
         } catch (error) {
             console.error('Fetch subjects error:', error);
 
@@ -46,6 +53,7 @@ function Subjects() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchSubjects();
     }, []);
 
@@ -137,6 +145,9 @@ function Subjects() {
 
             if (editingId) {
                 await api.put(`/subjects/${editingId}`, data);
+                // API call commented out:
+                // await api.put(`/subjects/${editingId}`, data);
+                mockStorage.updateSubject(editingId, data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -147,6 +158,9 @@ function Subjects() {
                 });
             } else {
                 await api.post('/subjects', data);
+                // API call commented out:
+                // await api.post('/subjects', data);
+                mockStorage.addSubject(data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -238,6 +252,9 @@ function Subjects() {
 
         try {
             await api.delete(`/subjects/${id}`);
+            // API call commented out:
+            // await api.delete(`/subjects/${id}`);
+            mockStorage.deleteSubject(id);
 
             await Swal.fire({
                 icon: 'success',
@@ -446,7 +463,7 @@ function Subjects() {
                                                 <td>
 
                                                     {subject.status ===
-                                                    'active' ? (
+                                                        'active' ? (
 
                                                         <span className="status-badge active">
                                                             Active
@@ -568,11 +585,10 @@ function Subjects() {
                                         <input
                                             type="text"
                                             name="name"
-                                            className={`form-control ${
-                                                errors.name
+                                            className={`form-control ${errors.name
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={
                                                 formData.name
                                             }
@@ -600,11 +616,10 @@ function Subjects() {
                                         <input
                                             type="text"
                                             name="code"
-                                            className={`form-control ${
-                                                errors.code
+                                            className={`form-control ${errors.code
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={
                                                 formData.code
                                             }
@@ -632,11 +647,10 @@ function Subjects() {
                                         <textarea
                                             name="description"
                                             rows="3"
-                                            className={`form-control ${
-                                                errors.description
+                                            className={`form-control ${errors.description
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={
                                                 formData.description
                                             }
@@ -663,11 +677,10 @@ function Subjects() {
 
                                         <select
                                             name="status"
-                                            className={`form-select ${
-                                                errors.status
+                                            className={`form-select ${errors.status
                                                     ? 'is-invalid'
                                                     : ''
-                                            }`}
+                                                }`}
                                             value={
                                                 formData.status
                                             }

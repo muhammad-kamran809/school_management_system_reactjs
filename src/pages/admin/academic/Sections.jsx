@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import api from "../../../services/api";
+// import api from "../../../services/api";
+import { mockStorage } from "../../../services/mockData";
 function Sections() {
     const [sections, setSections] = useState([]);
     const [classes, setClasses] = useState([]);
@@ -29,20 +30,19 @@ function Sections() {
 
             console.log('Loading sections...');
 
-            const response = await api.get('/sections');
+            // API call commented out:
+            // const response = await api.get('/sections');
+            // console.log('Sections API response:', response.data);
+            // let sectionData = [];
+            // if (Array.isArray(response.data)) {
+            //     sectionData = response.data;
+            // } else if (Array.isArray(response.data.data)) {
+            //     sectionData = response.data.data;
+            // } else if (Array.isArray(response.data.sections)) {
+            //     sectionData = response.data.sections;
+            // }
 
-            console.log('Sections API response:', response.data);
-
-            let sectionData = [];
-
-            if (Array.isArray(response.data)) {
-                sectionData = response.data;
-            } else if (Array.isArray(response.data.data)) {
-                sectionData = response.data.data;
-            } else if (Array.isArray(response.data.sections)) {
-                sectionData = response.data.sections;
-            }
-
+            const sectionData = mockStorage.getSections();
             setSections(sectionData);
 
         } catch (error) {
@@ -85,20 +85,19 @@ function Sections() {
     // =========================
     const fetchClasses = async () => {
         try {
-            const response = await api.get('/classes');
+            // API call commented out:
+            // const response = await api.get('/classes');
+            // console.log('Classes API response:', response.data);
+            // let classData = [];
+            // if (Array.isArray(response.data)) {
+            //     classData = response.data;
+            // } else if (Array.isArray(response.data.data)) {
+            //     classData = response.data.data;
+            // } else if (Array.isArray(response.data.classes)) {
+            //     classData = response.data.classes;
+            // }
 
-            console.log('Classes API response:', response.data);
-
-            let classData = [];
-
-            if (Array.isArray(response.data)) {
-                classData = response.data;
-            } else if (Array.isArray(response.data.data)) {
-                classData = response.data.data;
-            } else if (Array.isArray(response.data.classes)) {
-                classData = response.data.classes;
-            }
-
+            const classData = mockStorage.getClasses();
             setClasses(classData);
 
         } catch (error) {
@@ -118,6 +117,7 @@ function Sections() {
     // PAGE LOAD
     // =========================
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchSections();
         fetchClasses();
     }, []);
@@ -215,10 +215,12 @@ function Sections() {
             console.log('Sending section data:', data);
 
             if (editingId) {
-                await api.put(
-                    `/sections/${editingId}`,
-                    data
-                );
+                // API call commented out:
+                // await api.put(
+                //     `/sections/${editingId}`,
+                //     data
+                // );
+                mockStorage.updateSection(editingId, data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -228,7 +230,9 @@ function Sections() {
                     showConfirmButton: false,
                 });
             } else {
-                await api.post('/sections', data);
+                // API call commented out:
+                // await api.post('/sections', data);
+                mockStorage.addSection(data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -319,9 +323,8 @@ function Sections() {
         const result = await Swal.fire({
             icon: 'warning',
             title: 'Delete Section?',
-            text: `Are you sure you want to delete ${
-                section?.name || 'this section'
-            }?`,
+            text: `Are you sure you want to delete ${section?.name || 'this section'
+                }?`,
             showCancelButton: true,
             confirmButtonText: 'Yes, delete it',
             cancelButtonText: 'Cancel',
@@ -332,7 +335,9 @@ function Sections() {
         }
 
         try {
-            await api.delete(`/sections/${id}`);
+            // API call commented out:
+            // await api.delete(`/sections/${id}`);
+            mockStorage.deleteSection(id);
 
             await Swal.fire({
                 icon: 'success',
@@ -545,7 +550,7 @@ function Sections() {
                                                     <td>
 
                                                         {section.status ===
-                                                        'active' ? (
+                                                            'active' ? (
 
                                                             <span className="status-badge active">
                                                                 Active
@@ -661,11 +666,10 @@ function Sections() {
 
                                         <select
                                             name="class_id"
-                                            className={`form-select ${
-                                                errors.class_id
-                                                    ? 'is-invalid'
-                                                    : ''
-                                            }`}
+                                            className={`form-select ${errors.class_id
+                                                ? 'is-invalid'
+                                                : ''
+                                                }`}
                                             value={
                                                 formData.class_id
                                             }
@@ -718,11 +722,10 @@ function Sections() {
                                         <input
                                             type="text"
                                             name="name"
-                                            className={`form-control ${
-                                                errors.name
-                                                    ? 'is-invalid'
-                                                    : ''
-                                            }`}
+                                            className={`form-control ${errors.name
+                                                ? 'is-invalid'
+                                                : ''
+                                                }`}
                                             value={
                                                 formData.name
                                             }
@@ -753,11 +756,10 @@ function Sections() {
                                             type="number"
                                             name="capacity"
                                             min="1"
-                                            className={`form-control ${
-                                                errors.capacity
-                                                    ? 'is-invalid'
-                                                    : ''
-                                            }`}
+                                            className={`form-control ${errors.capacity
+                                                ? 'is-invalid'
+                                                : ''
+                                                }`}
                                             value={
                                                 formData.capacity
                                             }
@@ -787,11 +789,10 @@ function Sections() {
 
                                         <select
                                             name="status"
-                                            className={`form-select ${
-                                                errors.status
-                                                    ? 'is-invalid'
-                                                    : ''
-                                            }`}
+                                            className={`form-select ${errors.status
+                                                ? 'is-invalid'
+                                                : ''
+                                                }`}
                                             value={
                                                 formData.status
                                             }
