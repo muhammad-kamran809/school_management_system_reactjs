@@ -1,21 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
     const navigate = useNavigate();
-    const { login, loading, user } = useAuth();
+    const { login, loading } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [redirectAfterLogin, setRedirectAfterLogin] = useState(false);
-
-    useEffect(() => {
-        if (redirectAfterLogin && user) {
-            navigate('/dashboard', { replace: true });
-        }
-    }, [navigate, redirectAfterLogin, user]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,12 +19,12 @@ function Login() {
             Swal.fire({
                 icon: 'success',
                 title: 'Login Successful',
-                text: `Welcome ${result.user?.name || 'back'}`,
+                text: `Welcome ${result.user?.name || 'User'}`,
                 timer: 1500,
                 showConfirmButton: false,
             });
 
-            setRedirectAfterLogin(true);
+            navigate('/dashboard');
         } else {
             Swal.fire({
                 icon: 'error',

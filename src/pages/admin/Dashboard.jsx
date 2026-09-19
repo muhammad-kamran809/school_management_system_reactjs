@@ -1,28 +1,28 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
-// import api from '../../services/api';
-import { mockStorage } from '../../services/mockData';
+import { useAuth } from '../../context/AuthContext';
 
 function Dashboard() {
+    const { user } = useAuth();
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     const loadDashboard = async () => {
         try {
+            setLoading(true);
+            setError('');
             const response = await api.get('/dashboard');
-            // API call commented out:
-            // const response = await api.get('/dashboard');
-            // setDashboard(response.data.data);
-
-            setDashboard(response.data.data);
-            const data = mockStorage.getDashboardData();
-            setDashboard(data);
-        } catch (error) {
-            console.error(error);
-
+            const data = response.data?.data || {};
+            setDashboard({
+                ...data,
+                academic_year: response.data?.academic_year || data.academic_year || null,
+                user: user || data.user || null,
+            });
+        } catch (err) {
+            console.error('Failed to load dashboard:', err);
             setError(
-                error.response?.data?.message ||
+                err.response?.data?.message ||
                 'Unable to load dashboard.'
             );
         } finally {
@@ -93,7 +93,6 @@ function Dashboard() {
             <section className="dashboard-hero">
                 <div>
                     <p className="section-kicker">Overview</p>
-                    <h1>Good morning, {dashboard?.user?.name?.split(' ')[0] || 'administrator'}.</h1>
                     <h1>Good morning, {dashboard?.user?.name?.split(' ')[0] || 'Administrator'}.</h1>
                     <p className="hero-copy">Here is what is happening across your school today.</p>
                 </div>

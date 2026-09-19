@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
-// import api from "../../../services/api";
-import { mockStorage } from "../../../services/mockData";
 
 function Classes() {
     const [classes, setClasses] = useState([]);
@@ -24,22 +22,16 @@ function Classes() {
     const fetchClasses = async () => {
         try {
             setLoading(true);
-
             const response = await api.get('/classes');
-            // API call commented out:
-            // const response = await api.get('/classes');
-            // setClasses(response.data.data || response.data);
-
-            setClasses(response.data.data || response.data);
-            const data = mockStorage.getClasses();
-            setClasses(data);
+            const data = response.data?.data || response.data || [];
+            setClasses(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error(error);
+            console.error('Fetch classes error:', error);
 
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to load classes.',
+                text: error.response?.data?.message || 'Failed to load classes.',
             });
         } finally {
             setLoading(false);
@@ -104,9 +96,6 @@ function Classes() {
         try {
             if (editingId) {
                 await api.put(`/classes/${editingId}`, formData);
-                // API call commented out:
-                // await api.put(`/classes/${editingId}`, formData);
-                mockStorage.updateClass(editingId, formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -117,9 +106,6 @@ function Classes() {
                 });
             } else {
                 await api.post('/classes', formData);
-                // API call commented out:
-                // await api.post('/classes', formData);
-                mockStorage.addClass(formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -160,7 +146,7 @@ function Classes() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Something went wrong.',
+                    text: error.response?.data?.message || 'Something went wrong.',
                 });
             }
         } finally {
@@ -186,9 +172,6 @@ function Classes() {
 
         try {
             await api.delete(`/classes/${id}`);
-            // API call commented out:
-            // await api.delete(`/classes/${id}`);
-            mockStorage.deleteClass(id);
 
             Swal.fire({
                 icon: 'success',

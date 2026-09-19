@@ -1,37 +1,27 @@
-// import axios from 'axios';
+import axios from 'axios';
 
-// const api = axios.create({
-//     baseURL: 'http://school_mangement_system.test/api',
-//     headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json',
-//     },
-// });
+const api = axios.create({
+    baseURL: 'http://school_mangement_system.test/api',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
+});
 
 // Automatically attach token to every API request
-// api.interceptors.request.use(
-//     (config) => {
-//         const token = localStorage.getItem('token');
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
 
-//         if (token) {
-//             config.headers.Authorization = `Bearer ${token}`;
-//         }
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
 
-//         return config;
-//     },
-//     (error) => {
-//         return Promise.reject(error);
-//     }
-// );
-
-// export default api;
-
-const api = {
-    defaults: { headers: { common: {} } },
-    get: async () => ({ data: {} }),
-    post: async () => ({ data: {} }),
-    put: async () => ({ data: {} }),
-    delete: async () => ({ data: {} }),
-};
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 export default api;

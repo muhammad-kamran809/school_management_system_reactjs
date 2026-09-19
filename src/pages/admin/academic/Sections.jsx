@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-// import api from "../../../services/api";
-import { mockStorage } from "../../../services/mockData";
+import api from "../../../services/api";
+
 function Sections() {
     const [sections, setSections] = useState([]);
     const [classes, setClasses] = useState([]);
@@ -27,33 +27,15 @@ function Sections() {
     const fetchSections = async () => {
         try {
             setLoading(true);
-
-            console.log('Loading sections...');
-
-            // API call commented out:
-            // const response = await api.get('/sections');
-            // console.log('Sections API response:', response.data);
-            // let sectionData = [];
-            // if (Array.isArray(response.data)) {
-            //     sectionData = response.data;
-            // } else if (Array.isArray(response.data.data)) {
-            //     sectionData = response.data.data;
-            // } else if (Array.isArray(response.data.sections)) {
-            //     sectionData = response.data.sections;
-            // }
-
-            const sectionData = mockStorage.getSections();
-            setSections(sectionData);
-
+            const response = await api.get('/sections');
+            const data = response.data?.data || response.data || [];
+            setSections(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Fetch sections error:', error);
-
             setSections([]);
 
             const status = error.response?.status;
-            const message =
-                error.response?.data?.message ||
-                'Failed to load sections.';
+            const message = error.response?.data?.message || 'Failed to load sections.';
 
             if (status === 401) {
                 Swal.fire({
@@ -74,7 +56,6 @@ function Sections() {
                     text: message,
                 });
             }
-
         } finally {
             setLoading(false);
         }
@@ -85,21 +66,9 @@ function Sections() {
     // =========================
     const fetchClasses = async () => {
         try {
-            // API call commented out:
-            // const response = await api.get('/classes');
-            // console.log('Classes API response:', response.data);
-            // let classData = [];
-            // if (Array.isArray(response.data)) {
-            //     classData = response.data;
-            // } else if (Array.isArray(response.data.data)) {
-            //     classData = response.data.data;
-            // } else if (Array.isArray(response.data.classes)) {
-            //     classData = response.data.classes;
-            // }
-
-            const classData = mockStorage.getClasses();
-            setClasses(classData);
-
+            const response = await api.get('/classes');
+            const data = response.data?.data || response.data || [];
+            setClasses(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Fetch classes error:', error);
 
@@ -215,12 +184,7 @@ function Sections() {
             console.log('Sending section data:', data);
 
             if (editingId) {
-                // API call commented out:
-                // await api.put(
-                //     `/sections/${editingId}`,
-                //     data
-                // );
-                mockStorage.updateSection(editingId, data);
+                await api.put(`/sections/${editingId}`, data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -230,9 +194,7 @@ function Sections() {
                     showConfirmButton: false,
                 });
             } else {
-                // API call commented out:
-                // await api.post('/sections', data);
-                mockStorage.addSection(data);
+                await api.post('/sections', data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -335,9 +297,7 @@ function Sections() {
         }
 
         try {
-            // API call commented out:
-            // await api.delete(`/sections/${id}`);
-            mockStorage.deleteSection(id);
+            await api.delete(`/sections/${id}`);
 
             await Swal.fire({
                 icon: 'success',

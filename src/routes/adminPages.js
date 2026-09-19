@@ -16,6 +16,7 @@ export const adminPageGroups = [
             { title: 'Students', path: '/students', icon: 'bi-person-vcard' },
             { title: 'Teachers', path: '/teachers', icon: 'bi-person-workspace' },
             { title: 'Staff', path: '/staff', icon: 'bi-person-badge' },
+            { title: 'Parents', path: '/parents', icon: 'bi-people-fill' },
         ],
     },
     {

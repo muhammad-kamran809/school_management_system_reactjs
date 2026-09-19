@@ -6,36 +6,35 @@ const initialForm = {
     name: '',
     email: '',
     phone: '',
-    class_name: '',
-    section: '',
     gender: '',
     date_of_birth: '',
     address: '',
-    guardian_name: '',
-    guardian_phone: '',
+    designation: '',
+    department: '',
+    joining_date: '',
+    salary: '',
     status: 'active',
 };
 
-export default function Students() {
-    const [students, setStudents] = useState([]);
+export default function Staff() {
+    const [staffList, setStaffList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
-    const [editingStudent, setEditingStudent] = useState(null);
+    const [editingStaff, setEditingStaff] = useState(null);
 
     const [search, setSearch] = useState('');
 
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
 
-    // -----------------------------------------
-    // API ERROR HANDLER
-    // -----------------------------------------
+    const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState('');
+
     const handleApiError = (error) => {
         console.error('API Error:', error);
 
-        // No response from Laravel
         if (!error.response) {
             Swal.fire({
                 icon: 'error',
@@ -50,10 +49,6 @@ export default function Students() {
         const status = error.response.status;
         const data = error.response.data;
 
-        console.log('API status:', status);
-        console.log('API data:', data);
-
-        // 422 VALIDATION ERROR
         if (status === 422) {
             const validationErrors = data.errors || {};
             setErrors(validationErrors);
@@ -72,7 +67,6 @@ export default function Students() {
             return;
         }
 
-        // 401 UNAUTHENTICATED
         if (status === 401) {
             Swal.fire({
                 icon: 'warning',
@@ -84,7 +78,6 @@ export default function Students() {
             return;
         }
 
-        // 403 FORBIDDEN
         if (status === 403) {
             Swal.fire({
                 icon: 'error',
@@ -96,19 +89,17 @@ export default function Students() {
             return;
         }
 
-        // 404 NOT FOUND
         if (status === 404) {
             Swal.fire({
                 icon: 'error',
-                title: 'Student Not Found',
-                text: data.message || 'The requested student could not be found.',
+                title: 'Staff Not Found',
+                text: data.message || 'The requested staff member could not be found.',
                 confirmButtonText: 'OK'
             });
 
             return;
         }
 
-        // 500 SERVER ERROR
         if (status === 500) {
             Swal.fire({
                 icon: 'error',
@@ -120,7 +111,6 @@ export default function Students() {
             return;
         }
 
-        // OTHER ERRORS
         Swal.fire({
             icon: 'error',
             title: 'Something Went Wrong',
@@ -129,17 +119,14 @@ export default function Students() {
         });
     };
 
-    // -----------------------------------------
-    // GET STUDENTS
-    // -----------------------------------------
-    const fetchStudents = async () => {
+    const fetchStaff = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/students');
+            const response = await api.get('/staff');
             const data = response.data?.data || response.data || [];
-            setStudents(Array.isArray(data) ? data : []);
+            setStaffList(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Fetch students error:', error);
+            console.error('Fetch staff error:', error);
             handleApiError(error);
         } finally {
             setLoading(false);
@@ -147,13 +134,9 @@ export default function Students() {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchStudents();
+        fetchStaff();
     }, []);
 
-    // -----------------------------------------
-    // FORM INPUT
-    // -----------------------------------------
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -162,7 +145,6 @@ export default function Students() {
             [name]: value,
         }));
 
-        // Remove field error when user starts correcting it
         if (errors[name]) {
             setErrors((previous) => ({
                 ...previous,
@@ -171,63 +153,101 @@ export default function Students() {
         }
     };
 
-    // -----------------------------------------
-    // OPEN ADD MODAL
-    // -----------------------------------------
+    const handlePhotoChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid File',
+                text: 'Please select an image file (JPG, PNG, WebP, etc.).',
+            });
+            e.target.value = '';
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'File Too Large',
+                text: 'Please select an image under 5MB.',
+            });
+            e.target.value = '';
+            return;
+        }
+
+        if (photoPreview && photoPreview.startsWith('blob:')) {
+            URL.revokeObjectURL(photoPreview);
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        setSelectedPhotoFile(file);
+        setPhotoPreview(previewUrl);
+
+        if (errors.photo) {
+            setErrors((prev) => ({ ...prev, photo: undefined }));
+        }
+    };
+
     const openAddModal = () => {
-        setEditingStudent(null);
+        setEditingStaff(null);
         setForm(initialForm);
         setErrors({});
+        setSelectedPhotoFile(null);
+        setPhotoPreview('');
         setShowModal(true);
     };
 
-    // -----------------------------------------
-    // OPEN EDIT MODAL
-    // -----------------------------------------
-    const openEditModal = (student) => {
-        setEditingStudent(student);
+    const openEditModal = (staff) => {
+        setEditingStaff(staff);
 
         let formattedDob = '';
-        if (student.date_of_birth) {
-            formattedDob = student.date_of_birth.split('T')[0];
+        if (staff.date_of_birth) {
+            formattedDob = staff.date_of_birth.split('T')[0];
+        }
+
+        let formattedJoiningDate = '';
+        if (staff.joining_date) {
+            formattedJoiningDate = staff.joining_date.split('T')[0];
         }
 
         setForm({
-            name: student.name || '',
-            email: student.email || '',
-            phone: student.phone || '',
-            class_name: student.class_name || '',
-            section: student.section || '',
-            gender: student.gender || '',
+            name: staff.name || '',
+            email: staff.email || '',
+            phone: staff.phone || '',
+            gender: staff.gender || '',
             date_of_birth: formattedDob,
-            address: student.address || '',
-            guardian_name: student.guardian_name || '',
-            guardian_phone: student.guardian_phone || '',
-            status: student.status || 'active',
+            address: staff.address || '',
+            designation: staff.designation || '',
+            department: staff.department || '',
+            joining_date: formattedJoiningDate,
+            salary: staff.salary || '',
+            status: staff.status || 'active',
         });
 
         setErrors({});
+        setSelectedPhotoFile(null);
+        setPhotoPreview(staff.photo || '');
         setShowModal(true);
     };
 
-    // -----------------------------------------
-    // CLOSE MODAL
-    // -----------------------------------------
     const closeModal = () => {
-        setShowModal(false);
-        setEditingStudent(null);
+        if (photoPreview && photoPreview.startsWith('blob:')) {
+            URL.revokeObjectURL(photoPreview);
+        }
 
+        setShowModal(false);
+        setEditingStaff(null);
         setForm(initialForm);
         setErrors({});
+        setSelectedPhotoFile(null);
+        setPhotoPreview('');
     };
 
-    // -----------------------------------------
-    // SAVE STUDENT
-    // -----------------------------------------
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Prevent double submit
         if (saving) {
             return;
         }
@@ -235,86 +255,84 @@ export default function Students() {
         setSaving(true);
         setErrors({});
 
-        const payload = {
-            name: form.name,
-            email: form.email ? form.email.trim() : null,
-            phone: form.phone ? form.phone.trim() : null,
-            gender: form.gender,
-            date_of_birth: form.date_of_birth || null,
-            address: form.address ? form.address.trim() : null,
-            guardian_name: form.guardian_name,
-            guardian_phone: form.guardian_phone,
-            status: form.status,
+        const formData = new FormData();
+
+        formData.append('name', form.name);
+        if (form.email) formData.append('email', form.email.trim());
+        if (form.phone) formData.append('phone', form.phone.trim());
+        if (form.gender) formData.append('gender', form.gender);
+        if (form.date_of_birth) formData.append('date_of_birth', form.date_of_birth);
+        if (form.address) formData.append('address', form.address.trim());
+        if (form.designation) formData.append('designation', form.designation);
+        if (form.department) formData.append('department', form.department.trim());
+        if (form.joining_date) formData.append('joining_date', form.joining_date);
+        if (form.salary) formData.append('salary', form.salary);
+        formData.append('status', form.status);
+
+        if (selectedPhotoFile) {
+            formData.append('photo', selectedPhotoFile);
+        }
+
+        const requestConfig = {
+            headers: {
+                'Content-Type': undefined,
+            },
         };
 
         try {
-            if (editingStudent) {
-                // UPDATE STUDENT
-                await api.put(`/students/${editingStudent.id}`, payload);
+            if (editingStaff) {
+                formData.append('_method', 'PUT');
+                await api.post(`/staff/${editingStaff.id}`, formData, requestConfig);
 
-                // Close modal first
                 closeModal();
+                await fetchStaff();
 
-                // Refresh table
-                await fetchStudents();
-
-                // Show success alert
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Student Updated!',
-                    text: 'Student information has been updated successfully.',
+                    title: 'Staff Updated!',
+                    text: 'Staff information has been updated successfully.',
                     confirmButtonText: 'OK',
                 });
             } else {
-                // CREATE STUDENT
-                await api.post('/students', payload);
+                await api.post('/staff', formData, requestConfig);
 
-                // Close modal
                 closeModal();
+                await fetchStaff();
 
-                // Refresh table
-                await fetchStudents();
-
-                // Show success alert
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Student Created!',
-                    text: 'Student has been added successfully.',
+                    title: 'Staff Created!',
+                    text: 'Staff member has been added successfully.',
                     confirmButtonText: 'OK',
                 });
             }
         } catch (error) {
-            console.error('Student save error:', error);
+            console.error('Staff save error:', error);
             handleApiError(error);
         } finally {
             setSaving(false);
         }
     };
 
-    // -----------------------------------------
-    // DELETE STUDENT
-    // -----------------------------------------
-    const handleDelete = async (student) => {
+    const handleDelete = async (staff) => {
         const result = await Swal.fire({
             icon: 'warning',
-            title: 'Delete Student?',
-            text: `Are you sure you want to delete ${student.name}?`,
+            title: 'Delete Staff?',
+            text: `Are you sure you want to delete ${staff.name}?`,
             showCancelButton: true,
             confirmButtonText: 'Yes, Delete',
             cancelButtonText: 'Cancel',
             reverseButtons: true,
         });
 
-        // User clicked Cancel
         if (!result.isConfirmed) {
             return;
         }
 
         try {
-            // Show loading alert
             Swal.fire({
                 title: 'Deleting...',
-                text: 'Please wait while the student is being deleted.',
+                text: 'Please wait while the staff member is being deleted.',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 didOpen: () => {
@@ -322,54 +340,47 @@ export default function Students() {
                 },
             });
 
-            await api.delete(`/students/${student.id}`);
+            await api.delete(`/staff/${staff.id}`);
 
             await Swal.fire({
                 icon: 'success',
-                title: 'Student Deleted!',
-                text: `${student.name} has been deleted successfully.`,
+                title: 'Staff Deleted!',
+                text: `${staff.name} has been deleted successfully.`,
                 confirmButtonText: 'OK',
             });
 
-            // Refresh table
-            await fetchStudents();
+            await fetchStaff();
         } catch (error) {
             Swal.close();
             handleApiError(error);
         }
     };
 
-    // -----------------------------------------
-    // SEARCH
-    // -----------------------------------------
-    const filteredStudents = students.filter((student) => {
+    const filteredStaff = staffList.filter((staff) => {
         const searchText = search.toLowerCase();
 
         return (
-            String(student.name || '')
+            String(staff.name || '')
                 .toLowerCase()
                 .includes(searchText) ||
-            String(student.email || '')
+            String(staff.email || '')
                 .toLowerCase()
                 .includes(searchText) ||
-            String(student.phone || '')
+            String(staff.phone || '')
                 .toLowerCase()
                 .includes(searchText) ||
-            String(student.class_name || '')
+            String(staff.designation || '')
                 .toLowerCase()
                 .includes(searchText) ||
-            String(student.section || '')
+            String(staff.department || '')
                 .toLowerCase()
                 .includes(searchText) ||
-            String(student.guardian_name || '')
+            String(staff.status || '')
                 .toLowerCase()
                 .includes(searchText)
         );
     });
 
-    // -----------------------------------------
-    // FIELD ERROR
-    // -----------------------------------------
     const fieldError = (field) => {
         if (!errors[field]) {
             return null;
@@ -384,6 +395,13 @@ export default function Students() {
         );
     };
 
+    const formatCurrency = (value) => {
+        if (!value) return '-';
+        const num = Number(value);
+        if (isNaN(num)) return value;
+        return num.toLocaleString();
+    };
+
     return (
         <div className="academic-years-page">
 
@@ -395,10 +413,10 @@ export default function Students() {
                         People
                     </p>
 
-                    <h1>Students</h1>
+                    <h1>Staff</h1>
 
                     <p className="hero-copy">
-                        Manage student records and information.
+                        Manage staff records and information.
                     </p>
                 </div>
 
@@ -411,12 +429,12 @@ export default function Students() {
                         aria-hidden="true"
                     ></i>
 
-                    Add Student
+                    Add Staff
                 </button>
 
             </div>
 
-            {/* STUDENT TABLE PANEL */}
+            {/* STAFF TABLE PANEL */}
             <div className="dashboard-panel academic-years-panel">
 
                 {/* PANEL HEADER */}
@@ -427,7 +445,7 @@ export default function Students() {
                             People management
                         </p>
 
-                        <h2>Student list</h2>
+                        <h2>Staff list</h2>
                     </div>
 
                     <div className="d-flex align-items-center gap-3">
@@ -442,7 +460,7 @@ export default function Students() {
 
                             <input
                                 type="text"
-                                placeholder="Search students..."
+                                placeholder="Search staff..."
                                 value={search}
                                 onChange={(e) =>
                                     setSearch(e.target.value)
@@ -452,7 +470,7 @@ export default function Students() {
                         </div>
 
                         <span className="panel-count">
-                            {filteredStudents.length} records
+                            {filteredStaff.length} records
                         </span>
 
                     </div>
@@ -476,31 +494,31 @@ export default function Students() {
                             </div>
 
                             <p>
-                                Loading students...
+                                Loading staff...
                             </p>
 
                         </div>
 
-                    ) : filteredStudents.length === 0 ? (
+                    ) : filteredStaff.length === 0 ? (
 
                         /* EMPTY STATE */
                         <div className="academic-years-empty">
 
                             <i
-                                className="bi bi-people"
+                                className="bi bi-person-badge"
                                 aria-hidden="true"
                             ></i>
 
                             <h3>
                                 {search
-                                    ? 'No students found'
-                                    : 'No students yet'}
+                                    ? 'No staff found'
+                                    : 'No staff yet'}
                             </h3>
 
                             <p>
                                 {search
                                     ? 'Try a different search.'
-                                    : 'Add your first student to get started.'}
+                                    : 'Add your first staff member to get started.'}
                             </p>
 
                             {!search && (
@@ -509,7 +527,7 @@ export default function Students() {
                                     onClick={openAddModal}
                                 >
                                     <i className="bi bi-plus-lg me-2"></i>
-                                    Add Student
+                                    Add Staff
                                 </button>
                             )}
 
@@ -531,7 +549,7 @@ export default function Students() {
                                         </th>
 
                                         <th>
-                                            Student
+                                            Name
                                         </th>
 
                                         <th>
@@ -539,23 +557,35 @@ export default function Students() {
                                         </th>
 
                                         <th>
-                                            Class
-                                        </th>
-
-                                        <th>
-                                            Section
-                                        </th>
-
-                                        <th>
                                             Gender
                                         </th>
 
                                         <th>
-                                            Guardian
+                                            Date of Birth
+                                        </th>
+
+                                        <th>
+                                            Designation
+                                        </th>
+
+                                        <th>
+                                            Department
+                                        </th>
+
+                                        <th>
+                                            Joining Date
+                                        </th>
+
+                                        <th>
+                                            Salary
                                         </th>
 
                                         <th>
                                             Status
+                                        </th>
+
+                                        <th>
+                                            Photo
                                         </th>
 
                                         <th
@@ -573,10 +603,10 @@ export default function Students() {
 
                                 <tbody>
 
-                                    {filteredStudents.map(
-                                        (student, index) => (
+                                    {filteredStaff.map(
+                                        (staff, index) => (
 
-                                            <tr key={student.id}>
+                                            <tr key={staff.id}>
 
                                                 {/* NUMBER */}
                                                 <td>
@@ -590,20 +620,20 @@ export default function Students() {
                                                     </span>
                                                 </td>
 
-                                                {/* STUDENT */}
+                                                {/* NAME & EMAIL */}
                                                 <td>
 
                                                     <div className="student-table-name">
 
                                                         <div className="student-avatar">
 
-                                                            {student.photo ? (
+                                                            {staff.photo ? (
                                                                 <img
                                                                     src={
-                                                                        student.photo
+                                                                        staff.photo
                                                                     }
                                                                     alt={
-                                                                        student.name
+                                                                        staff.name
                                                                     }
                                                                 />
                                                             ) : (
@@ -616,13 +646,13 @@ export default function Students() {
 
                                                             <div className="fw-semibold">
                                                                 {
-                                                                    student.name
+                                                                    staff.name
                                                                 }
                                                             </div>
 
                                                             <div className="text-muted small">
                                                                 {
-                                                                    student.email ||
+                                                                    staff.email ||
                                                                     'No email'
                                                                 }
                                                             </div>
@@ -631,47 +661,65 @@ export default function Students() {
 
                                                     </div>
 
+                                                    {/* Address (small text below) */}
+                                                    {staff.address && (
+                                                        <div className="text-muted small mt-1" style={{ maxWidth: '220px' }}>
+                                                            {staff.address}
+                                                        </div>
+                                                    )}
+
                                                 </td>
 
                                                 {/* PHONE */}
                                                 <td>
-                                                    {student.phone || '-'}
-                                                </td>
-
-                                                {/* CLASS */}
-                                                <td>
-                                                    {student.class_name || '-'}
-                                                </td>
-
-                                                {/* SECTION */}
-                                                <td>
-                                                    {student.section || '-'}
+                                                    {staff.phone || '-'}
                                                 </td>
 
                                                 {/* GENDER */}
                                                 <td>
 
-                                                    {student.gender
-                                                        ? student.gender
+                                                    {staff.gender
+                                                        ? staff.gender
                                                             .charAt(0)
                                                             .toUpperCase() +
-                                                        student.gender.slice(1)
+                                                        staff.gender.slice(1)
                                                         : '-'}
 
                                                 </td>
 
-                                                {/* GUARDIAN */}
+                                                {/* DATE OF BIRTH */}
                                                 <td>
-                                                    {
-                                                        student.guardian_name ||
-                                                        '-'
-                                                    }
+                                                    {staff.date_of_birth
+                                                        ? staff.date_of_birth.split('T')[0]
+                                                        : '-'}
+                                                </td>
+
+                                                {/* DESIGNATION */}
+                                                <td>
+                                                    {staff.designation || '-'}
+                                                </td>
+
+                                                {/* DEPARTMENT */}
+                                                <td>
+                                                    {staff.department || '-'}
+                                                </td>
+
+                                                {/* JOINING DATE */}
+                                                <td>
+                                                    {staff.joining_date
+                                                        ? staff.joining_date.split('T')[0]
+                                                        : '-'}
+                                                </td>
+
+                                                {/* SALARY */}
+                                                <td>
+                                                    {formatCurrency(staff.salary)}
                                                 </td>
 
                                                 {/* STATUS */}
                                                 <td>
 
-                                                    {student.status ===
+                                                    {staff.status ===
                                                         'active' ? (
 
                                                         <span className="status-badge active">
@@ -681,11 +729,11 @@ export default function Students() {
                                                     ) : (
 
                                                         <span className="status-badge inactive">
-                                                            {student.status
-                                                                ? student.status
+                                                            {staff.status
+                                                                ? staff.status
                                                                     .charAt(0)
                                                                     .toUpperCase() +
-                                                                student.status.slice(
+                                                                staff.status.slice(
                                                                     1
                                                                 )
                                                                 : 'Inactive'}
@@ -693,6 +741,28 @@ export default function Students() {
 
                                                     )}
 
+                                                </td>
+
+                                                {/* PHOTO */}
+                                                <td>
+                                                    {staff.photo ? (
+                                                        <div
+                                                            className="rounded-circle overflow-hidden border"
+                                                            style={{ width: '36px', height: '36px' }}
+                                                        >
+                                                            <img
+                                                                src={staff.photo}
+                                                                alt={staff.name}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    objectFit: 'cover'
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-muted small">-</span>
+                                                    )}
                                                 </td>
 
                                                 {/* ACTIONS */}
@@ -703,10 +773,10 @@ export default function Students() {
                                                         <button
                                                             type="button"
                                                             className="academic-action-button edit"
-                                                            title="Edit student"
+                                                            title="Edit staff"
                                                             onClick={() =>
                                                                 openEditModal(
-                                                                    student
+                                                                    staff
                                                                 )
                                                             }
                                                         >
@@ -716,10 +786,10 @@ export default function Students() {
                                                         <button
                                                             type="button"
                                                             className="academic-action-button delete"
-                                                            title="Delete student"
+                                                            title="Delete staff"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    student
+                                                                    staff
                                                                 )
                                                             }
                                                         >
@@ -755,14 +825,14 @@ export default function Students() {
                         {/* Modal Header */}
                         <div className="student-modal-header">
                             <div>
-                                <span className="section-kicker">Student</span>
+                                <span className="section-kicker">Staff</span>
                                 <h3>
-                                    {editingStudent ? 'Edit Student' : 'Add Student'}
+                                    {editingStaff ? 'Edit Staff' : 'Add Staff'}
                                 </h3>
                                 <p>
-                                    {editingStudent
-                                        ? 'Update student information.'
-                                        : 'Create a new student record.'}
+                                    {editingStaff
+                                        ? 'Update staff information.'
+                                        : 'Create a new staff record.'}
                                 </p>
                             </div>
 
@@ -783,10 +853,10 @@ export default function Students() {
 
                                 <div className="student-form-grid">
 
-                                    {/* Student Name */}
+                                    {/* Staff Name */}
                                     <div className="form-group">
                                         <label>
-                                            Student Name <span>*</span>
+                                            Name <span>*</span>
                                         </label>
 
                                         <input
@@ -794,7 +864,7 @@ export default function Students() {
                                             name="name"
                                             value={form.name}
                                             onChange={handleChange}
-                                            placeholder="Enter student name"
+                                            placeholder="Enter staff name"
                                             disabled={saving}
                                         />
 
@@ -867,6 +937,73 @@ export default function Students() {
                                         {fieldError('date_of_birth')}
                                     </div>
 
+                                    {/* Designation */}
+                                    <div className="form-group">
+                                        <label>
+                                            Designation <span>*</span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Accountant, Clerk, Librarian"
+                                            disabled={saving}
+                                        />
+
+                                        {fieldError('designation')}
+                                    </div>
+
+                                    {/* Department */}
+                                    <div className="form-group">
+                                        <label>Department</label>
+
+                                        <input
+                                            type="text"
+                                            name="department"
+                                            value={form.department}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Administration, Finance, IT"
+                                            disabled={saving}
+                                        />
+
+                                        {fieldError('department')}
+                                    </div>
+
+                                    {/* Joining Date */}
+                                    <div className="form-group">
+                                        <label>Joining Date</label>
+
+                                        <input
+                                            type="date"
+                                            name="joining_date"
+                                            value={form.joining_date}
+                                            onChange={handleChange}
+                                            disabled={saving}
+                                        />
+
+                                        {fieldError('joining_date')}
+                                    </div>
+
+                                    {/* Salary */}
+                                    <div className="form-group">
+                                        <label>Salary</label>
+
+                                        <input
+                                            type="number"
+                                            name="salary"
+                                            value={form.salary}
+                                            onChange={handleChange}
+                                            placeholder="Enter salary amount"
+                                            min="0"
+                                            step="0.01"
+                                            disabled={saving}
+                                        />
+
+                                        {fieldError('salary')}
+                                    </div>
+
                                     {/* Status */}
                                     <div className="form-group">
                                         <label>Status</label>
@@ -884,6 +1021,49 @@ export default function Students() {
                                         {fieldError('status')}
                                     </div>
 
+                                    {/* Photo Upload */}
+                                    <div className="form-group full-width">
+                                        <label>Photo</label>
+
+                                        <div className="d-flex align-items-center gap-3">
+                                            {/* Preview */}
+                                            <div
+                                                className="rounded-circle overflow-hidden border bg-light d-flex align-items-center justify-content-center flex-shrink-0"
+                                                style={{ width: '80px', height: '80px' }}
+                                            >
+                                                {photoPreview ? (
+                                                    <img
+                                                        src={photoPreview}
+                                                        alt="Preview"
+                                                        style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            objectFit: 'cover',
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <i className="bi bi-person fs-3 text-muted"></i>
+                                                )}
+                                            </div>
+
+                                            {/* File Input */}
+                                            <div className="flex-grow-1">
+                                                <input
+                                                    type="file"
+                                                    className="form-control"
+                                                    accept="image/*"
+                                                    onChange={handlePhotoChange}
+                                                    disabled={saving}
+                                                />
+                                                <small className="text-muted d-block mt-1">
+                                                    Select an image from your PC (max 5MB). JPG, PNG, WebP supported.
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        {fieldError('photo')}
+                                    </div>
+
                                     {/* Address */}
                                     <div className="form-group full-width">
                                         <label>Address</label>
@@ -892,44 +1072,12 @@ export default function Students() {
                                             name="address"
                                             value={form.address}
                                             onChange={handleChange}
-                                            placeholder="Enter student address"
+                                            placeholder="Enter staff address"
                                             rows="3"
                                             disabled={saving}
                                         />
 
                                         {fieldError('address')}
-                                    </div>
-
-                                    {/* Guardian Name */}
-                                    <div className="form-group">
-                                        <label>Guardian Name</label>
-
-                                        <input
-                                            type="text"
-                                            name="guardian_name"
-                                            value={form.guardian_name}
-                                            onChange={handleChange}
-                                            placeholder="Enter guardian name"
-                                            disabled={saving}
-                                        />
-
-                                        {fieldError('guardian_name')}
-                                    </div>
-
-                                    {/* Guardian Phone */}
-                                    <div className="form-group">
-                                        <label>Guardian Phone</label>
-
-                                        <input
-                                            type="text"
-                                            name="guardian_phone"
-                                            value={form.guardian_phone}
-                                            onChange={handleChange}
-                                            placeholder="Enter guardian phone"
-                                            disabled={saving}
-                                        />
-
-                                        {fieldError('guardian_phone')}
                                     </div>
 
                                 </div>
@@ -953,9 +1101,9 @@ export default function Students() {
                                     >
                                         {saving
                                             ? 'Saving...'
-                                            : editingStudent
-                                                ? 'Update Student'
-                                                : 'Save Student'}
+                                            : editingStaff
+                                                ? 'Update Staff'
+                                                : 'Save Staff'}
                                     </button>
 
                                 </div>
@@ -968,5 +1116,3 @@ export default function Students() {
         </div>
     );
 }
-
-// export default Students;

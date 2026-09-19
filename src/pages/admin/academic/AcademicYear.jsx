@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
-// import api from "../../../services/api";
-import { mockStorage } from "../../../services/mockData";
 
 function AcademicYears() {
     const [academicYears, setAcademicYears] = useState([]);
@@ -25,22 +23,16 @@ function AcademicYears() {
     const fetchAcademicYears = async () => {
         try {
             setLoading(true);
-
             const response = await api.get('/academic-years');
-            // API call commented out:
-            // const response = await api.get('/academic-years');
-            // setAcademicYears(response.data.data || response.data);
-
-            setAcademicYears(response.data.data || response.data);
-            const data = mockStorage.getAcademicYears();
-            setAcademicYears(data);
+            const data = response.data?.data || response.data || [];
+            setAcademicYears(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error(error);
+            console.error('Fetch academic years error:', error);
 
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to load academic years.',
+                text: error.response?.data?.message || 'Failed to load academic years.',
             });
         } finally {
             setLoading(false);
@@ -107,9 +99,6 @@ function AcademicYears() {
         try {
             if (editingId) {
                 await api.put(`/academic-years/${editingId}`, formData);
-                // API call commented out:
-                // await api.put(`/academic-years/${editingId}`, formData);
-                mockStorage.updateAcademicYear(editingId, formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -120,9 +109,6 @@ function AcademicYears() {
                 });
             } else {
                 await api.post('/academic-years', formData);
-                // API call commented out:
-                // await api.post('/academic-years', formData);
-                mockStorage.addAcademicYear(formData);
 
                 Swal.fire({
                     icon: 'success',
@@ -163,7 +149,7 @@ function AcademicYears() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Something went wrong.',
+                    text: error.response?.data?.message || 'Something went wrong.',
                 });
             }
         } finally {
@@ -188,9 +174,6 @@ function AcademicYears() {
 
         try {
             await api.delete(`/academic-years/${id}`);
-            // API call commented out:
-            // await api.delete(`/academic-years/${id}`);
-            mockStorage.deleteAcademicYear(id);
 
             Swal.fire({
                 icon: 'success',

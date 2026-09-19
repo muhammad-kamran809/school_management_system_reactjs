@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
-// import api from "../../../services/api";
-import { mockStorage } from "../../../services/mockData";
 
 function Subjects() {
     const [subjects, setSubjects] = useState([]);
@@ -28,15 +26,9 @@ function Subjects() {
     const fetchSubjects = async () => {
         try {
             setLoading(true);
-
             const response = await api.get('/subjects');
-            // API call commented out:
-            // const response = await api.get('/subjects');
-            // setSubjects(response.data.data || response.data);
-
-            setSubjects(response.data.data || response.data);
-            const data = mockStorage.getSubjects();
-            setSubjects(data);
+            const data = response.data?.data || response.data || [];
+            setSubjects(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Fetch subjects error:', error);
 
@@ -145,9 +137,6 @@ function Subjects() {
 
             if (editingId) {
                 await api.put(`/subjects/${editingId}`, data);
-                // API call commented out:
-                // await api.put(`/subjects/${editingId}`, data);
-                mockStorage.updateSubject(editingId, data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -158,9 +147,6 @@ function Subjects() {
                 });
             } else {
                 await api.post('/subjects', data);
-                // API call commented out:
-                // await api.post('/subjects', data);
-                mockStorage.addSubject(data);
 
                 await Swal.fire({
                     icon: 'success',
@@ -252,9 +238,6 @@ function Subjects() {
 
         try {
             await api.delete(`/subjects/${id}`);
-            // API call commented out:
-            // await api.delete(`/subjects/${id}`);
-            mockStorage.deleteSubject(id);
 
             await Swal.fire({
                 icon: 'success',

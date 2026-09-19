@@ -12,6 +12,9 @@ import Classes from './pages/admin/academic/Classes';
 import Sections from './pages/admin/academic/Sections';
 import Subjects from './pages/admin/academic/Subjects';
 import Students from './pages/admin/people/Students';
+import Teachers from './pages/admin/people/Teachers';
+import Staff from './pages/admin/people/Staff';
+import Parents from './pages/admin/people/Parents';
 import AdminPage from './pages/admin/AdminPage';
 import { adminPages } from './routes/adminPages';
 
@@ -67,13 +70,21 @@ function App() {
                             element={<Students />}
                         />
 
-                        {adminPages.filter((page) => page.path !== '/academic-years').map((page) => (
-                            <Route
-                                key={page.path}
-                                path={page.path}
-                                element={<AdminPage title={page.title} icon={page.icon} />}
-                            />
-                        ))}
+                        <Route
+                            path="/teachers"
+                            element={<Teachers />}
+                        />
+
+                        <Route
+                            path="/staff"
+                            element={<Staff />}
+                        />
+
+                        <Route
+                            path="/parents"
+                            element={<Parents />}
+                        />
+
                         {adminPages
                             .filter(
                                 (page) =>
@@ -83,6 +94,9 @@ function App() {
                                         '/sections',
                                         '/subjects',
                                         '/students',
+                                        '/teachers',
+                                        '/staff',
+                                        '/parents',
                                     ].includes(page.path)
                             )
                             .map((page) => (
