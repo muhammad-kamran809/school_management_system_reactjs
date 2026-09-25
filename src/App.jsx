@@ -12,6 +12,23 @@ import Classes from './pages/admin/academic/Classes';
 import Sections from './pages/admin/academic/Sections';
 import Subjects from './pages/admin/academic/Subjects';
 import Students from './pages/admin/people/Students';
+// Academic Management section
+import TimeTable from './pages/admin/Academic_management/TimeTable';
+import TeacherAssignments from './pages/admin/Academic_management/TeacherAssignment';
+import Enrollments from './pages/admin/Academic_management/Enrollments';
+//Attendance Section
+import StudentAttendance from './pages/admin/attendance/StudentAttendance';
+import TeacherAttendance from './pages/admin/attendance/TeacherAttendance';
+// Exams sections
+import Exams from './pages/admin/Exams/Exams';
+import Result from './pages/admin/Exams/Result';
+// Finance sections
+import Fees from './pages/admin/finance/Fees';
+import Payments from './pages/admin/finance/Payments';
+import FeeReports from './pages/admin/finance/FeeReports';
+import Notices from './pages/admin/communication/Notices';
+import Events from './pages/admin/communication/Events';
+import SchoolSettings from './pages/admin/settings/SchoolSettings';
 import AdminPage from './pages/admin/AdminPage';
 import { adminPages } from './routes/adminPages';
 
@@ -66,6 +83,62 @@ function App() {
                             path="/students"
                             element={<Students />}
                         />
+                        //Academic_management section routes
+                        <Route
+                            path="/TimeTable"
+                            element={<TimeTable />}
+                        />
+                         <Route
+                            path="/teacher-assignments"
+                            element={<TeacherAssignments />}
+                        />
+                         <Route
+                            path="/enrollments"
+                            element={<Enrollments  />}
+                        />
+                        //Attendance section
+                            <Route
+                                 path="/student-attendance"
+                                element={<StudentAttendance />}
+                                                                 /> 
+                            <Route
+                                 path="/teacher-attendance"
+                                element={< TeacherAttendance/>}
+                                                                 />                                  
+                                // Exams section
+                                 <Route
+                                 path="/exams"
+                                element={< Exams/>}
+                                                     />
+                             <Route
+                                 path="/results"
+                                element={< Result/>}
+                                                     />
+                            // Fees sections Routes
+                             <Route
+                                 path="/fees"
+                                element={< Fees/>}
+                                                     />
+                             <Route
+                                 path="/payments"
+                                element={< Payments/>}
+                                                     />
+                            <Route
+                                 path="/fee-reports"
+                                element={< FeeReports/>}
+                                                     />
+                            <Route
+                                 path="/notices"
+                                element={< Notices/>}
+                                                     />
+                            <Route
+                                 path="/events"
+                                element={< Events/>}
+                                                     />
+                             <Route
+                                 path="/school-settings"
+                                element={< SchoolSettings/>}
+                                                     />
 
                         {adminPages.filter((page) => page.path !== '/academic-years').map((page) => (
                             <Route

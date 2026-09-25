@@ -1,7 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from '../../../services/api';
-// import api from '../../../services/api';
 import { mockStorage } from '../../../services/mockData';
 
 const initialForm = {
@@ -22,6 +22,7 @@ export default function Students() {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
@@ -31,31 +32,42 @@ export default function Students() {
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
 
-    // -----------------------------------------
+    // =========================================================
     // GET STUDENTS
-    // -----------------------------------------
+    // =========================================================
+
     const fetchStudents = async () => {
         try {
             setLoading(true);
 
-            // API call commented out:
-            // const response = await api.get('/students');
-            // if (Array.isArray(response.data)) {
-            //     setStudents(response.data);
-            // } else if (Array.isArray(response.data.data)) {
-            //     setStudents(response.data.data);
-            // } else {
-            //     setStudents([]);
-            // }
+            /*
+            // Laravel API - connect later
+
+            const response = await api.get('/students');
+
+            if (Array.isArray(response.data)) {
+                setStudents(response.data);
+            } else if (Array.isArray(response.data.data)) {
+                setStudents(response.data.data);
+            } else {
+                setStudents([]);
+            }
+            */
 
             const data = mockStorage.getStudents();
-            setStudents(data);
 
+            setStudents(
+                Array.isArray(data)
+                    ? data
+                    : []
+            );
         } catch (error) {
-            console.error('Fetch students error:', error);
+            console.error(
+                'Fetch students error:',
+                error
+            );
 
             handleApiError(error);
-
         } finally {
             setLoading(false);
         }
@@ -66,46 +78,58 @@ export default function Students() {
         fetchStudents();
     }, []);
 
-    // -----------------------------------------
+    // =========================================================
     // API ERROR HANDLER
-    // -----------------------------------------
-    const handleApiError = (error) => {
-        console.error('API Error:', error);
+    // =========================================================
 
-        // No response from Laravel
+    const handleApiError = (error) => {
+        console.error(
+            'API Error:',
+            error
+        );
+
         if (!error.response) {
             Swal.fire({
                 icon: 'error',
                 title: 'Connection Error',
-                text: 'Could not connect to the Laravel server. Please check your API server.',
-                confirmButtonText: 'OK'
+                text:
+                    'Could not connect to the Laravel server. Please check your API server.',
+                confirmButtonText: 'OK',
             });
 
             return;
         }
 
-        const status = error.response.status;
-        const data = error.response.data;
+        const status =
+            error.response.status;
 
-        console.log('API status:', status);
-        console.log('API data:', data);
+        const data =
+            error.response.data || {};
 
         // 422 VALIDATION ERROR
         if (status === 422) {
+            const validationErrors =
+                data.errors || {};
 
-            const validationErrors = data.errors || {};
+            setErrors(
+                validationErrors
+            );
 
-            setErrors(validationErrors);
-
-            const messages = Object.values(validationErrors)
-                .flat()
-                .join('<br>');
+            const messages =
+                Object.values(
+                    validationErrors
+                )
+                    .flat()
+                    .join('<br>');
 
             Swal.fire({
                 icon: 'warning',
                 title: 'Validation Error',
-                html: messages || data.message || 'Please check the form.',
-                confirmButtonText: 'OK'
+                html:
+                    messages ||
+                    data.message ||
+                    'Please check the form.',
+                confirmButtonText: 'OK',
             });
 
             return;
@@ -113,12 +137,12 @@ export default function Students() {
 
         // 401 UNAUTHENTICATED
         if (status === 401) {
-
             Swal.fire({
                 icon: 'warning',
                 title: 'Unauthenticated',
-                text: 'Your login session has expired. Please login again.',
-                confirmButtonText: 'OK'
+                text:
+                    'Your login session has expired. Please login again.',
+                confirmButtonText: 'OK',
             });
 
             return;
@@ -126,12 +150,13 @@ export default function Students() {
 
         // 403 FORBIDDEN
         if (status === 403) {
-
             Swal.fire({
                 icon: 'error',
                 title: 'Permission Denied',
-                text: data.message || 'You do not have permission to perform this action.',
-                confirmButtonText: 'OK'
+                text:
+                    data.message ||
+                    'You do not have permission to perform this action.',
+                confirmButtonText: 'OK',
             });
 
             return;
@@ -139,12 +164,13 @@ export default function Students() {
 
         // 404 NOT FOUND
         if (status === 404) {
-
             Swal.fire({
                 icon: 'error',
                 title: 'Student Not Found',
-                text: data.message || 'The requested student could not be found.',
-                confirmButtonText: 'OK'
+                text:
+                    data.message ||
+                    'The requested student could not be found.',
+                confirmButtonText: 'OK',
             });
 
             return;
@@ -152,12 +178,13 @@ export default function Students() {
 
         // 500 SERVER ERROR
         if (status === 500) {
-
             Swal.fire({
                 icon: 'error',
                 title: 'Server Error',
-                text: data.message || 'Something went wrong on the Laravel server.',
-                confirmButtonText: 'OK'
+                text:
+                    data.message ||
+                    'Something went wrong on the Laravel server.',
+                confirmButtonText: 'OK',
             });
 
             return;
@@ -167,83 +194,118 @@ export default function Students() {
         Swal.fire({
             icon: 'error',
             title: 'Something Went Wrong',
-            text: data.message || `Request failed with status ${status}.`,
-            confirmButtonText: 'OK'
+            text:
+                data.message ||
+                `Request failed with status ${status}.`,
+            confirmButtonText: 'OK',
         });
     };
 
-    // -----------------------------------------
+    // =========================================================
     // FORM INPUT
-    // -----------------------------------------
+    // =========================================================
+
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {
+            name,
+            value,
+        } = e.target;
 
-        setForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
-
-        // Remove field error when user starts correcting it
-        if (errors[name]) {
-            setErrors((previous) => ({
+        setForm(
+            (previous) => ({
                 ...previous,
-                [name]: undefined,
-            }));
+                [name]: value,
+            })
+        );
+
+        if (errors[name]) {
+            setErrors(
+                (previous) => ({
+                    ...previous,
+                    [name]: undefined,
+                })
+            );
         }
     };
 
-    // -----------------------------------------
+    // =========================================================
     // OPEN ADD MODAL
-    // -----------------------------------------
+    // =========================================================
+
     const openAddModal = () => {
         setEditingStudent(null);
-        setForm(initialForm);
+
+        setForm({
+            ...initialForm,
+        });
+
         setErrors({});
         setShowModal(true);
     };
 
-    // -----------------------------------------
+    // =========================================================
     // OPEN EDIT MODAL
-    // -----------------------------------------
+    // =========================================================
+
     const openEditModal = (student) => {
         setEditingStudent(student);
 
         setForm({
-            name: student.name || '',
-            email: student.email || '',
-            phone: student.phone || '',
-            class_name: student.class_name || '',
-            section: student.section || '',
-            gender: student.gender || '',
-            date_of_birth: student.date_of_birth || '',
-            address: student.address || '',
-            guardian_name: student.guardian_name || '',
-            guardian_phone: student.guardian_phone || '',
-            status: student.status || 'active',
+            name:
+                student.name || '',
+            email:
+                student.email || '',
+            phone:
+                student.phone || '',
+            class_name:
+                student.class_name || '',
+            section:
+                student.section || '',
+            gender:
+                student.gender || '',
+            date_of_birth:
+                student.date_of_birth || '',
+            address:
+                student.address || '',
+            guardian_name:
+                student.guardian_name || '',
+            guardian_phone:
+                student.guardian_phone || '',
+            status:
+                student.status ||
+                'active',
         });
 
         setErrors({});
         setShowModal(true);
     };
 
-    // -----------------------------------------
+    // =========================================================
     // CLOSE MODAL
-    // -----------------------------------------
+    // =========================================================
+
     const closeModal = () => {
+        if (saving) {
+            return;
+        }
+
         setShowModal(false);
         setEditingStudent(null);
 
-        setForm(initialForm);
+        setForm({
+            ...initialForm,
+        });
+
         setErrors({});
     };
 
-    // -----------------------------------------
+    // =========================================================
     // SAVE STUDENT
-    // -----------------------------------------
+    // =========================================================
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Prevent double submit
         if (saving) {
             return;
         }
@@ -252,164 +314,282 @@ export default function Students() {
         setErrors({});
 
         try {
-            let response;
+            // =================================================
+            // UPDATE STUDENT
+            // =================================================
 
             if (editingStudent) {
-                // UPDATE STUDENT
-                response = await api.put(
+                /*
+                // Laravel API - connect later
+
+                const response = await api.put(
                     `/students/${editingStudent.id}`,
                     form
                 );
-                // API call commented out:
-                // response = await api.put(
-                //     `/students/${editingStudent.id}`,
-                //     form
-                // );
-                mockStorage.updateStudent(editingStudent.id, form);
+                */
 
-                console.log('Student update response:', response.data);
+                mockStorage.updateStudent(
+                    editingStudent.id,
+                    form
+                );
 
-                // Close modal first
-                closeModal();
+                // -------------------------------------------------
+                // UPDATE UI DIRECTLY
+                // No full table reload
+                // -------------------------------------------------
 
-                // Refresh table
-                await fetchStudents();
+                setStudents(
+                    (previous) =>
+                        previous.map(
+                            (student) =>
+                                student.id ===
+                                editingStudent.id
+                                    ? {
+                                          ...student,
+                                          ...form,
+                                      }
+                                    : student
+                        )
+                );
 
-                // Show success alert
+                setShowModal(false);
+                setEditingStudent(null);
+
+                setForm({
+                    ...initialForm,
+                });
+
+                setErrors({});
+
                 await Swal.fire({
                     icon: 'success',
                     title: 'Student Updated!',
-                    text: 'Student information has been updated successfully.',
-                    confirmButtonText: 'OK'
-                });
-
-            } else {
-                // CREATE STUDENT
-                response = await api.post(
-                    '/students',
-                    form
-                );
-                // API call commented out:
-                // response = await api.post(
-                //     '/students',
-                //     form
-                // );
-                mockStorage.addStudent(form);
-
-                console.log('Student create response:', response.data);
-
-                // Close modal
-                closeModal();
-
-                // Refresh table
-                await fetchStudents();
-
-                // Show success alert
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Student Created!',
-                    text: 'Student has been added successfully.',
-                    confirmButtonText: 'OK'
+                    text:
+                        'Student information has been updated successfully.',
+                    confirmButtonText: 'OK',
                 });
             }
 
+            // =================================================
+            // CREATE STUDENT
+            // =================================================
+
+            else {
+                /*
+                // Laravel API - connect later
+
+                const response = await api.post(
+                    '/students',
+                    form
+                );
+                */
+
+                mockStorage.addStudent(
+                    form
+                );
+
+                // -------------------------------------------------
+                // Get latest data from mockStorage
+                // -------------------------------------------------
+
+                const updatedStudents =
+                    mockStorage.getStudents();
+
+                setStudents(
+                    Array.isArray(
+                        updatedStudents
+                    )
+                        ? updatedStudents
+                        : []
+                );
+
+                setShowModal(false);
+                setEditingStudent(null);
+
+                setForm({
+                    ...initialForm,
+                });
+
+                setErrors({});
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Student Created!',
+                    text:
+                        'Student has been added successfully.',
+                    confirmButtonText: 'OK',
+                });
+            }
         } catch (error) {
-            console.error('Student save error:', error);
+            console.error(
+                'Student save error:',
+                error
+            );
 
-            // IMPORTANT:
-            // Show the error to the user
             handleApiError(error);
-
         } finally {
-            // IMPORTANT:
-            // Saving must ALWAYS return to false
             setSaving(false);
         }
     };
-    // -----------------------------------------
-    // DELETE STUDENT
-    // -----------------------------------------
-    const handleDelete = async (student) => {
-        const result = await Swal.fire({
-            icon: 'warning',
-            title: 'Delete Student?',
-            text: `Are you sure you want to delete ${student.name}?`,
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Delete',
-            cancelButtonText: 'Cancel',
-            reverseButtons: true
-        });
 
-        // User clicked Cancel
+    // =========================================================
+    // FAST DELETE STUDENT
+    // =========================================================
+
+    const handleDelete = async (student) => {
+        // Prevent multiple delete operations
+        if (deletingId !== null) {
+            return;
+        }
+
+        const result =
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Delete Student?',
+                text:
+                    `Are you sure you want to delete ${student.name}?`,
+                showCancelButton: true,
+                confirmButtonText:
+                    'Yes, Delete',
+                cancelButtonText:
+                    'Cancel',
+                reverseButtons: true,
+            });
+
         if (!result.isConfirmed) {
             return;
         }
 
         try {
-            // Show loading alert
-            Swal.fire({
-                title: 'Deleting...',
-                text: 'Please wait while the student is being deleted.',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            // -------------------------------------------------
+            // Mark this specific row as deleting
+            // -------------------------------------------------
 
-            await api.delete(`/students/${student.id}`);
-            // API call commented out:
-            // await api.delete(`/students/${student.id}`);
-            mockStorage.deleteStudent(student.id);
+            setDeletingId(student.id);
+
+            /*
+            // Laravel API - connect later
+
+            await api.delete(
+                `/students/${student.id}`
+            );
+            */
+
+            // -------------------------------------------------
+            // Delete from localStorage/mockStorage
+            // -------------------------------------------------
+
+            mockStorage.deleteStudent(
+                student.id
+            );
+
+            // -------------------------------------------------
+            // IMPORTANT:
+            // Update only the React state.
+            //
+            // We DO NOT call fetchStudents().
+            // This prevents the whole table from showing
+            // the loading screen again.
+            // -------------------------------------------------
+
+            setStudents(
+                (previous) =>
+                    previous.filter(
+                        (item) =>
+                            item.id !==
+                            student.id
+                    )
+            );
+
+            // -------------------------------------------------
+            // Success message
+            // -------------------------------------------------
 
             await Swal.fire({
                 icon: 'success',
                 title: 'Student Deleted!',
-                text: `${student.name} has been deleted successfully.`,
-                confirmButtonText: 'OK'
+                text:
+                    `${student.name} has been deleted successfully.`,
+                confirmButtonText:
+                    'OK',
             });
-
-            // Refresh table
-            fetchStudents();
-
         } catch (error) {
-            Swal.close();
+            console.error(
+                'Student delete error:',
+                error
+            );
 
             handleApiError(error);
+        } finally {
+            setDeletingId(null);
         }
     };
 
-    // -----------------------------------------
+    // =========================================================
     // SEARCH
-    // -----------------------------------------
-    const filteredStudents = students.filter((student) => {
-        const searchText = search.toLowerCase();
+    // =========================================================
 
-        return (
-            String(student.name || '')
-                .toLowerCase()
-                .includes(searchText) ||
-            String(student.email || '')
-                .toLowerCase()
-                .includes(searchText) ||
-            String(student.phone || '')
-                .toLowerCase()
-                .includes(searchText) ||
-            String(student.class_name || '')
-                .toLowerCase()
-                .includes(searchText) ||
-            String(student.section || '')
-                .toLowerCase()
-                .includes(searchText) ||
-            String(student.guardian_name || '')
-                .toLowerCase()
-                .includes(searchText)
+    const filteredStudents =
+        students.filter(
+            (student) => {
+                const searchText =
+                    search
+                        .toLowerCase()
+                        .trim();
+
+                return (
+                    String(
+                        student.name || ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+                    String(
+                        student.email || ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+                    String(
+                        student.phone || ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+                    String(
+                        student.class_name ||
+                        ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+                    String(
+                        student.section || ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+                    String(
+                        student.guardian_name ||
+                        ''
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        )
+                );
+            }
         );
-    });
 
-    // -----------------------------------------
+    // =========================================================
     // FIELD ERROR
-    // -----------------------------------------
+    // =========================================================
+
     const fieldError = (field) => {
         if (!errors[field]) {
             return null;
@@ -417,17 +597,51 @@ export default function Students() {
 
         return (
             <div className="text-danger small mt-1">
-                {Array.isArray(errors[field])
+                {Array.isArray(
+                    errors[field]
+                )
                     ? errors[field][0]
                     : errors[field]}
             </div>
         );
     };
 
-    return (
-        <div className="academic-years-page">
+    // =========================================================
+    // STATUS FORMATTER
+    // =========================================================
 
-            {/* PAGE HEADER */}
+    const formatStatus = (
+        status
+    ) => {
+        if (!status) {
+            return 'Inactive';
+        }
+
+        return (
+            status
+                .charAt(0)
+                .toUpperCase() +
+            status.slice(1)
+        );
+    };
+
+    // =========================================================
+    // RENDER
+    // =========================================================
+
+    return (
+        <div
+            className="academic-years-page"
+            style={{
+                width: '100%',
+                maxWidth: '100%',
+            }}
+        >
+
+            {/* =================================================
+                PAGE HEADER
+            ================================================= */}
+
             <div className="academic-years-header">
 
                 <div>
@@ -435,7 +649,9 @@ export default function Students() {
                         People
                     </p>
 
-                    <h1>Students</h1>
+                    <h1>
+                        Students
+                    </h1>
 
                     <p className="hero-copy">
                         Manage student records and information.
@@ -443,8 +659,14 @@ export default function Students() {
                 </div>
 
                 <button
+                    type="button"
                     className="btn btn-primary academic-years-add"
-                    onClick={openAddModal}
+                    onClick={
+                        openAddModal
+                    }
+                    disabled={
+                        deletingId !== null
+                    }
                 >
                     <i
                         className="bi bi-plus-lg"
@@ -456,10 +678,22 @@ export default function Students() {
 
             </div>
 
-            {/* STUDENT TABLE PANEL */}
-            <div className="dashboard-panel academic-years-panel">
+            {/* =================================================
+                STUDENT LIST PANEL
+            ================================================= */}
+
+            <div
+                className="dashboard-panel academic-years-panel"
+                style={{
+                    width: '100%',
+                    maxWidth: 'none',
+                    marginLeft: 0,
+                    marginRight: 0,
+                }}
+            >
 
                 {/* PANEL HEADER */}
+
                 <div className="academic-years-panel-heading">
 
                     <div>
@@ -467,12 +701,15 @@ export default function Students() {
                             People management
                         </p>
 
-                        <h2>Student list</h2>
+                        <h2>
+                            Student list
+                        </h2>
                     </div>
 
                     <div className="d-flex align-items-center gap-3">
 
                         {/* SEARCH */}
+
                         <div className="student-search">
 
                             <i
@@ -483,25 +720,59 @@ export default function Students() {
                             <input
                                 type="text"
                                 placeholder="Search students..."
-                                value={search}
-                                onChange={(e) =>
-                                    setSearch(e.target.value)
+                                value={
+                                    search
+                                }
+                                onChange={(
+                                    e
+                                ) =>
+                                    setSearch(
+                                        e.target.value
+                                    )
                                 }
                             />
+
+                            {search && (
+                                <button
+                                    type="button"
+                                    className="student-search-clear"
+                                    onClick={() =>
+                                        setSearch(
+                                            ''
+                                        )
+                                    }
+                                    title="Clear search"
+                                >
+                                    &times;
+                                </button>
+                            )}
 
                         </div>
 
                         <span className="panel-count">
-                            {filteredStudents.length} records
+                            {
+                                filteredStudents.length
+                            } records
                         </span>
 
                     </div>
 
                 </div>
 
-                <div className="academic-years-table-wrap">
+                {/* =================================================
+                    TABLE
+                ================================================= */}
+
+                <div
+                    className="academic-years-table-wrap"
+                    style={{
+                        width: '100%',
+                        maxWidth: '100%',
+                    }}
+                >
 
                     {/* LOADING */}
+
                     {loading ? (
 
                         <div className="academic-years-empty">
@@ -524,6 +795,7 @@ export default function Students() {
                     ) : filteredStudents.length === 0 ? (
 
                         /* EMPTY STATE */
+
                         <div className="academic-years-empty">
 
                             <i
@@ -545,8 +817,11 @@ export default function Students() {
 
                             {!search && (
                                 <button
+                                    type="button"
                                     className="btn btn-primary"
-                                    onClick={openAddModal}
+                                    onClick={
+                                        openAddModal
+                                    }
                                 >
                                     <i className="bi bi-plus-lg me-2"></i>
                                     Add Student
@@ -558,15 +833,36 @@ export default function Students() {
                     ) : (
 
                         /* TABLE */
-                        <div className="table-responsive">
 
-                            <table className="academic-years-table">
+                        <div
+                            className="table-responsive"
+                            style={{
+                                width: '100%',
+                                overflowX:
+                                    'auto',
+                            }}
+                        >
+
+                            <table
+                                className="academic-years-table"
+                                style={{
+                                    width:
+                                        '100%',
+                                    minWidth:
+                                        '1200px',
+                                }}
+                            >
 
                                 <thead>
 
                                     <tr>
 
-                                        <th style={{ width: '60px' }}>
+                                        <th
+                                            style={{
+                                                width:
+                                                    '60px',
+                                            }}
+                                        >
                                             #
                                         </th>
 
@@ -600,8 +896,10 @@ export default function Students() {
 
                                         <th
                                             style={{
-                                                width: '120px',
-                                                textAlign: 'right'
+                                                width:
+                                                    '120px',
+                                                textAlign:
+                                                    'right',
                                             }}
                                         >
                                             Actions
@@ -614,165 +912,217 @@ export default function Students() {
                                 <tbody>
 
                                     {filteredStudents.map(
-                                        (student, index) => (
+                                        (
+                                            student,
+                                            index
+                                        ) => {
 
-                                            <tr key={student.id}>
+                                            const isDeleting =
+                                                deletingId ===
+                                                student.id;
 
-                                                {/* NUMBER */}
-                                                <td>
-                                                    <span className="academic-years-index">
-                                                        {String(
-                                                            index + 1
-                                                        ).padStart(
-                                                            2,
-                                                            '0'
-                                                        )}
-                                                    </span>
-                                                </td>
+                                            return (
+                                                <tr
+                                                    key={
+                                                        student.id ||
+                                                        `${student.name}-${index}`
+                                                    }
+                                                    style={
+                                                        isDeleting
+                                                            ? {
+                                                                  opacity: 0.55,
+                                                              }
+                                                            : undefined
+                                                    }
+                                                >
 
-                                                {/* STUDENT */}
-                                                <td>
+                                                    {/* NUMBER */}
 
-                                                    <div className="student-table-name">
+                                                    <td>
+                                                        <span className="academic-years-index">
+                                                            {String(
+                                                                index +
+                                                                    1
+                                                            ).padStart(
+                                                                2,
+                                                                '0'
+                                                            )}
+                                                        </span>
+                                                    </td>
 
-                                                        <div className="student-avatar">
+                                                    {/* STUDENT */}
 
-                                                            {student.photo ? (
-                                                                <img
-                                                                    src={
-                                                                        student.photo
-                                                                    }
-                                                                    alt={
+                                                    <td>
+
+                                                        <div className="student-table-name">
+
+                                                            <div className="student-avatar">
+
+                                                                {student.photo ? (
+                                                                    <img
+                                                                        src={
+                                                                            student.photo
+                                                                        }
+                                                                        alt={
+                                                                            student.name
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    <i className="bi bi-person"></i>
+                                                                )}
+
+                                                            </div>
+
+                                                            <div>
+
+                                                                <div className="fw-semibold">
+                                                                    {
                                                                         student.name
                                                                     }
-                                                                />
-                                                            ) : (
-                                                                <i className="bi bi-person"></i>
-                                                            )}
+                                                                </div>
 
-                                                        </div>
+                                                                <div className="text-muted small">
+                                                                    {
+                                                                        student.email ||
+                                                                        'No email'
+                                                                    }
+                                                                </div>
 
-                                                        <div>
-
-                                                            <div className="fw-semibold">
-                                                                {
-                                                                    student.name
-                                                                }
-                                                            </div>
-
-                                                            <div className="text-muted small">
-                                                                {
-                                                                    student.email ||
-                                                                    'No email'
-                                                                }
                                                             </div>
 
                                                         </div>
 
-                                                    </div>
+                                                    </td>
 
-                                                </td>
+                                                    {/* PHONE */}
 
-                                                {/* PHONE */}
-                                                <td>
-                                                    {student.phone || '-'}
-                                                </td>
+                                                    <td>
+                                                        {
+                                                            student.phone ||
+                                                            '-'
+                                                        }
+                                                    </td>
 
-                                                {/* CLASS */}
-                                                <td>
-                                                    {student.class_name || '-'}
-                                                </td>
+                                                    {/* CLASS */}
 
-                                                {/* SECTION */}
-                                                <td>
-                                                    {student.section || '-'}
-                                                </td>
+                                                    <td>
+                                                        {
+                                                            student.class_name ||
+                                                            '-'
+                                                        }
+                                                    </td>
 
-                                                {/* GENDER */}
-                                                <td>
+                                                    {/* SECTION */}
 
-                                                    {student.gender
-                                                        ? student.gender
-                                                            .charAt(0)
-                                                            .toUpperCase() +
-                                                        student.gender.slice(1)
-                                                        : '-'}
+                                                    <td>
+                                                        {
+                                                            student.section ||
+                                                            '-'
+                                                        }
+                                                    </td>
 
-                                                </td>
+                                                    {/* GENDER */}
 
-                                                {/* GUARDIAN */}
-                                                <td>
-                                                    {
-                                                        student.guardian_name ||
-                                                        '-'
-                                                    }
-                                                </td>
+                                                    <td>
+                                                        {student.gender
+                                                            ? student.gender
+                                                                  .charAt(
+                                                                      0
+                                                                  )
+                                                                  .toUpperCase() +
+                                                              student.gender.slice(
+                                                                  1
+                                                              )
+                                                            : '-'}
+                                                    </td>
 
-                                                {/* STATUS */}
-                                                <td>
+                                                    {/* GUARDIAN */}
 
-                                                    {student.status ===
+                                                    <td>
+                                                        {
+                                                            student.guardian_name ||
+                                                            '-'
+                                                        }
+                                                    </td>
+
+                                                    {/* STATUS */}
+
+                                                    <td>
+
+                                                        {student.status ===
                                                         'active' ? (
 
-                                                        <span className="status-badge active">
-                                                            Active
-                                                        </span>
+                                                            <span className="status-badge active">
+                                                                Active
+                                                            </span>
 
-                                                    ) : (
+                                                        ) : (
 
-                                                        <span className="status-badge inactive">
-                                                            {student.status
-                                                                ? student.status
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                student.status.slice(
-                                                                    1
-                                                                )
-                                                                : 'Inactive'}
-                                                        </span>
+                                                            <span className="status-badge inactive">
+                                                                {formatStatus(
+                                                                    student.status
+                                                                )}
+                                                            </span>
 
-                                                    )}
+                                                        )}
 
-                                                </td>
+                                                    </td>
 
-                                                {/* ACTIONS */}
-                                                <td>
+                                                    {/* ACTIONS */}
 
-                                                    <div className="academic-actions">
+                                                    <td>
 
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button edit"
-                                                            title="Edit student"
-                                                            onClick={() =>
-                                                                openEditModal(
-                                                                    student
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-pencil"></i>
-                                                        </button>
+                                                        <div className="academic-actions">
 
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button delete"
-                                                            title="Delete student"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    student
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-trash3"></i>
-                                                        </button>
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button edit"
+                                                                title="Edit student"
+                                                                onClick={() =>
+                                                                    openEditModal(
+                                                                        student
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                <i className="bi bi-pencil"></i>
+                                                            </button>
 
-                                                    </div>
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button delete"
+                                                                title="Delete student"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        student
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                {isDeleting ? (
+                                                                    <span
+                                                                        className="spinner-border spinner-border-sm"
+                                                                        role="status"
+                                                                        aria-hidden="true"
+                                                                    ></span>
+                                                                ) : (
+                                                                    <i className="bi bi-trash3"></i>
+                                                                )}
+                                                            </button>
 
-                                                </td>
+                                                        </div>
 
-                                            </tr>
+                                                    </td>
 
-                                        )
+                                                </tr>
+                                            );
+                                        }
                                     )}
 
                                 </tbody>
@@ -787,201 +1137,440 @@ export default function Students() {
 
             </div>
 
-            {/* ADD / EDIT MODAL */}
+            {/* =================================================
+                ADD / EDIT MODAL
+            ================================================= */}
+
             {showModal && (
-                <div className="student-modal-overlay">
+
+                <div
+                    className="student-modal-overlay"
+                    onMouseDown={(
+                        e
+                    ) => {
+                        if (
+                            e.target ===
+                                e.currentTarget &&
+                            !saving
+                        ) {
+                            closeModal();
+                        }
+                    }}
+                >
+
                     <div className="student-modal">
 
-                        {/* Modal Header */}
+                        {/* MODAL HEADER */}
+
                         <div className="student-modal-header">
+
                             <div>
-                                <span className="section-kicker">Student</span>
+
+                                <span className="section-kicker">
+                                    Student
+                                </span>
+
                                 <h3>
-                                    {editingStudent ? 'Edit Student' : 'Add Student'}
+                                    {editingStudent
+                                        ? 'Edit Student'
+                                        : 'Add Student'}
                                 </h3>
+
                                 <p>
                                     {editingStudent
                                         ? 'Update student information.'
                                         : 'Create a new student record.'}
                                 </p>
+
                             </div>
 
                             <button
                                 type="button"
                                 className="student-modal-close"
-                                onClick={closeModal}
-                                disabled={saving}
+                                onClick={
+                                    closeModal
+                                }
+                                disabled={
+                                    saving
+                                }
                             >
                                 &times;
                             </button>
+
                         </div>
 
-                        {/* SCROLLABLE MODAL BODY */}
+                        {/* MODAL BODY */}
+
                         <div className="student-modal-body">
 
-                            <form onSubmit={handleSubmit}>
+                            <form
+                                onSubmit={
+                                    handleSubmit
+                                }
+                            >
 
                                 <div className="student-form-grid">
 
-                                    {/* Student Name */}
+                                    {/* STUDENT NAME */}
+
                                     <div className="form-group">
+
                                         <label>
-                                            Student Name <span>*</span>
+                                            Student Name{' '}
+                                            <span>
+                                                *
+                                            </span>
                                         </label>
 
                                         <input
                                             type="text"
                                             name="name"
-                                            value={form.name}
-                                            onChange={handleChange}
+                                            value={
+                                                form.name
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter student name"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('name')}
+                                        {fieldError(
+                                            'name'
+                                        )}
+
                                     </div>
 
-                                    {/* Email */}
+                                    {/* EMAIL */}
+
                                     <div className="form-group">
-                                        <label>Email</label>
+
+                                        <label>
+                                            Email
+                                        </label>
 
                                         <input
                                             type="email"
                                             name="email"
-                                            value={form.email}
-                                            onChange={handleChange}
+                                            value={
+                                                form.email
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter email address"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('email')}
+                                        {fieldError(
+                                            'email'
+                                        )}
+
                                     </div>
 
-                                    {/* Phone */}
+                                    {/* PHONE */}
+
                                     <div className="form-group">
-                                        <label>Phone</label>
+
+                                        <label>
+                                            Phone
+                                        </label>
 
                                         <input
                                             type="text"
                                             name="phone"
-                                            value={form.phone}
-                                            onChange={handleChange}
+                                            value={
+                                                form.phone
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter phone number"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('phone')}
+                                        {fieldError(
+                                            'phone'
+                                        )}
+
                                     </div>
 
-                                    {/* Gender */}
+                                    {/* CLASS */}
+
                                     <div className="form-group">
-                                        <label>Gender</label>
+
+                                        <label>
+                                            Class
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="class_name"
+                                            value={
+                                                form.class_name
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            placeholder="Enter class"
+                                            disabled={
+                                                saving
+                                            }
+                                        />
+
+                                        {fieldError(
+                                            'class_name'
+                                        )}
+
+                                    </div>
+
+                                    {/* SECTION */}
+
+                                    <div className="form-group">
+
+                                        <label>
+                                            Section
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="section"
+                                            value={
+                                                form.section
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            placeholder="Enter section"
+                                            disabled={
+                                                saving
+                                            }
+                                        />
+
+                                        {fieldError(
+                                            'section'
+                                        )}
+
+                                    </div>
+
+                                    {/* GENDER */}
+
+                                    <div className="form-group">
+
+                                        <label>
+                                            Gender
+                                        </label>
 
                                         <select
                                             name="gender"
-                                            value={form.gender}
-                                            onChange={handleChange}
-                                            disabled={saving}
+                                            value={
+                                                form.gender
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            disabled={
+                                                saving
+                                            }
                                         >
-                                            <option value="">Select gender</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
-                                            <option value="other">Other</option>
+
+                                            <option value="">
+                                                Select gender
+                                            </option>
+
+                                            <option value="male">
+                                                Male
+                                            </option>
+
+                                            <option value="female">
+                                                Female
+                                            </option>
+
+                                            <option value="other">
+                                                Other
+                                            </option>
+
                                         </select>
 
-                                        {fieldError('gender')}
+                                        {fieldError(
+                                            'gender'
+                                        )}
+
                                     </div>
 
-                                    {/* Date of Birth */}
+                                    {/* DATE OF BIRTH */}
+
                                     <div className="form-group">
-                                        <label>Date of Birth</label>
+
+                                        <label>
+                                            Date of Birth
+                                        </label>
 
                                         <input
                                             type="date"
                                             name="date_of_birth"
-                                            value={form.date_of_birth}
-                                            onChange={handleChange}
-                                            disabled={saving}
+                                            value={
+                                                form.date_of_birth
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('date_of_birth')}
+                                        {fieldError(
+                                            'date_of_birth'
+                                        )}
+
                                     </div>
 
-                                    {/* Status */}
+                                    {/* STATUS */}
+
                                     <div className="form-group">
-                                        <label>Status</label>
+
+                                        <label>
+                                            Status
+                                        </label>
 
                                         <select
                                             name="status"
-                                            value={form.status}
-                                            onChange={handleChange}
-                                            disabled={saving}
+                                            value={
+                                                form.status
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
+                                            disabled={
+                                                saving
+                                            }
                                         >
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
+
+                                            <option value="active">
+                                                Active
+                                            </option>
+
+                                            <option value="inactive">
+                                                Inactive
+                                            </option>
+
                                         </select>
 
-                                        {fieldError('status')}
+                                        {fieldError(
+                                            'status'
+                                        )}
+
                                     </div>
 
-                                    {/* Address */}
+                                    {/* ADDRESS */}
+
                                     <div className="form-group full-width">
-                                        <label>Address</label>
+
+                                        <label>
+                                            Address
+                                        </label>
 
                                         <textarea
                                             name="address"
-                                            value={form.address}
-                                            onChange={handleChange}
+                                            value={
+                                                form.address
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter student address"
                                             rows="3"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('address')}
+                                        {fieldError(
+                                            'address'
+                                        )}
+
                                     </div>
 
-                                    {/* Guardian Name */}
+                                    {/* GUARDIAN NAME */}
+
                                     <div className="form-group">
-                                        <label>Guardian Name</label>
+
+                                        <label>
+                                            Guardian Name
+                                        </label>
 
                                         <input
                                             type="text"
                                             name="guardian_name"
-                                            value={form.guardian_name}
-                                            onChange={handleChange}
+                                            value={
+                                                form.guardian_name
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter guardian name"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('guardian_name')}
+                                        {fieldError(
+                                            'guardian_name'
+                                        )}
+
                                     </div>
 
-                                    {/* Guardian Phone */}
+                                    {/* GUARDIAN PHONE */}
+
                                     <div className="form-group">
-                                        <label>Guardian Phone</label>
+
+                                        <label>
+                                            Guardian Phone
+                                        </label>
 
                                         <input
                                             type="text"
                                             name="guardian_phone"
-                                            value={form.guardian_phone}
-                                            onChange={handleChange}
+                                            value={
+                                                form.guardian_phone
+                                            }
+                                            onChange={
+                                                handleChange
+                                            }
                                             placeholder="Enter guardian phone"
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         />
 
-                                        {fieldError('guardian_phone')}
+                                        {fieldError(
+                                            'guardian_phone'
+                                        )}
+
                                     </div>
 
                                 </div>
 
-                                {/* Modal Footer */}
+                                {/* MODAL FOOTER */}
+
                                 <div className="student-modal-footer">
 
                                     <button
                                         type="button"
                                         className="student-modal-cancel"
-                                        onClick={closeModal}
-                                        disabled={saving}
+                                        onClick={
+                                            closeModal
+                                        }
+                                        disabled={
+                                            saving
+                                        }
                                     >
                                         Cancel
                                     </button>
@@ -989,7 +1578,9 @@ export default function Students() {
                                     <button
                                         type="submit"
                                         className="student-modal-submit"
-                                        disabled={saving}
+                                        disabled={
+                                            saving
+                                        }
                                     >
                                         {saving
                                             ? 'Saving...'
@@ -1001,12 +1592,16 @@ export default function Students() {
                                 </div>
 
                             </form>
+
                         </div>
+
                     </div>
+
                 </div>
+
             )}
+
         </div>
     );
 }
 
-// export default Students;
