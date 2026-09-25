@@ -1,1890 +1,5 @@
-// // import { useEffect, useState } from 'react';
-// // import Swal from 'sweetalert2';
-
-// // // API is intentionally disabled for frontend/static development.
-// // // import api from '../../../services/api';
-
-// // import { mockStorage } from '../../../services/mockData';
-
-// // const initialForm = {
-// //     teacher: '',
-// //     academic_year: '',
-// //     class_name: '',
-// //     section: '',
-// //     subject: '',
-// // };
-
-// // function TeacherAssignments() {
-// //     const [assignments, setAssignments] = useState([]);
-// //     const [loading, setLoading] = useState(true);
-// //     const [saving, setSaving] = useState(false);
-
-// //     const [showModal, setShowModal] = useState(false);
-// //     const [editingAssignment, setEditingAssignment] = useState(null);
-
-// //     const [search, setSearch] = useState('');
-
-// //     const [form, setForm] = useState(initialForm);
-// //     const [errors, setErrors] = useState({});
-
-// //     // --------------------------------------------------
-// //     // FETCH ASSIGNMENTS
-// //     // --------------------------------------------------
-
-// //     const fetchAssignments = async () => {
-// //         setLoading(true);
-
-// //         try {
-// //             // API intentionally disabled.
-// //             // const response = await api.get('/teacher-assignments');
-// //             // setAssignments(response.data);
-
-// //             const data =
-// //                 typeof mockStorage.getTeacherAssignments === 'function'
-// //                     ? mockStorage.getTeacherAssignments()
-// //                     : [];
-
-// //             setAssignments(Array.isArray(data) ? data : []);
-// //         } catch (error) {
-// //             console.error(
-// //                 'Error loading teacher assignments:',
-// //                 error
-// //             );
-
-// //             Swal.fire({
-// //                 icon: 'error',
-// //                 title: 'Error',
-// //                 text: 'Unable to load teacher assignment records.',
-// //                 confirmButtonColor: '#198754',
-// //             });
-
-// //             setAssignments([]);
-// //         } finally {
-// //             setLoading(false);
-// //         }
-// //     };
-
-// //     useEffect(() => {
-// //         fetchAssignments();
-// //     }, []);
-
-// //     // --------------------------------------------------
-// //     // HANDLE INPUT CHANGE
-// //     // --------------------------------------------------
-
-// //     const handleChange = (event) => {
-// //         const { name, value } = event.target;
-
-// //         setForm((previous) => ({
-// //             ...previous,
-// //             [name]: value,
-// //         }));
-
-// //         if (errors[name]) {
-// //             setErrors((previous) => ({
-// //                 ...previous,
-// //                 [name]: '',
-// //             }));
-// //         }
-// //     };
-
-// //     // --------------------------------------------------
-// //     // OPEN ADD MODAL
-// //     // --------------------------------------------------
-
-// //     const openAddModal = () => {
-// //         setEditingAssignment(null);
-// //         setForm(initialForm);
-// //         setErrors({});
-// //         setShowModal(true);
-// //     };
-
-// //     // --------------------------------------------------
-// //     // OPEN EDIT MODAL
-// //     // --------------------------------------------------
-
-// //     const openEditModal = (assignment) => {
-// //         setEditingAssignment(assignment);
-
-// //         setForm({
-// //             teacher:
-// //                 assignment.teacher ||
-// //                 assignment.teacher_name ||
-// //                 '',
-
-// //             academic_year:
-// //                 assignment.academic_year ||
-// //                 assignment.academicYear ||
-// //                 '',
-
-// //             class_name:
-// //                 assignment.class_name ||
-// //                 assignment.className ||
-// //                 '',
-
-// //             section:
-// //                 assignment.section || '',
-
-// //             subject:
-// //                 assignment.subject || '',
-// //         });
-
-// //         setErrors({});
-// //         setShowModal(true);
-// //     };
-
-// //     // --------------------------------------------------
-// //     // CLOSE MODAL
-// //     // --------------------------------------------------
-
-// //     const closeModal = () => {
-// //         if (saving) return;
-
-// //         setShowModal(false);
-// //         setEditingAssignment(null);
-// //         setForm(initialForm);
-// //         setErrors({});
-// //     };
-
-// //     // --------------------------------------------------
-// //     // VALIDATE FORM
-// //     // --------------------------------------------------
-
-// //     const validateForm = () => {
-// //         const newErrors = {};
-
-// //         if (!form.teacher.trim()) {
-// //             newErrors.teacher = 'Teacher is required.';
-// //         }
-
-// //         if (!form.academic_year.trim()) {
-// //             newErrors.academic_year =
-// //                 'Academic Year is required.';
-// //         }
-
-// //         if (!form.class_name.trim()) {
-// //             newErrors.class_name = 'Class is required.';
-// //         }
-
-// //         if (!form.section.trim()) {
-// //             newErrors.section = 'Section is required.';
-// //         }
-
-// //         if (!form.subject.trim()) {
-// //             newErrors.subject = 'Subject is required.';
-// //         }
-
-// //         setErrors(newErrors);
-
-// //         return Object.keys(newErrors).length === 0;
-// //     };
-
-// //     // --------------------------------------------------
-// //     // SUBMIT FORM
-// //     // --------------------------------------------------
-
-// //     const handleSubmit = async (event) => {
-// //         event.preventDefault();
-
-// //         if (!validateForm()) {
-// //             Swal.fire({
-// //                 icon: 'warning',
-// //                 title: 'Required Fields',
-// //                 text: 'Please complete all required fields.',
-// //                 confirmButtonColor: '#198754',
-// //             });
-
-// //             return;
-// //         }
-
-// //         setSaving(true);
-
-// //         try {
-// //             const assignmentData = {
-// //                 teacher: form.teacher.trim(),
-// //                 academic_year:
-// //                     form.academic_year.trim(),
-// //                 class_name:
-// //                     form.class_name.trim(),
-// //                 section:
-// //                     form.section.trim(),
-// //                 subject:
-// //                     form.subject.trim(),
-// //             };
-
-// //             // --------------------------------------------------
-// //             // API IS INTENTIONALLY DISABLED
-// //             // --------------------------------------------------
-
-// //             /*
-// //             if (editingAssignment) {
-// //                 await api.put(
-// //                     `/teacher-assignments/${editingAssignment.id}`,
-// //                     assignmentData
-// //                 );
-// //             } else {
-// //                 await api.post(
-// //                     '/teacher-assignments',
-// //                     assignmentData
-// //                 );
-// //             }
-// //             */
-
-// //             // --------------------------------------------------
-// //             // MOCK STORAGE
-// //             // --------------------------------------------------
-
-// //             if (editingAssignment) {
-// //                 if (
-// //                     typeof mockStorage.updateTeacherAssignment ===
-// //                     'function'
-// //                 ) {
-// //                     mockStorage.updateTeacherAssignment(
-// //                         editingAssignment.id,
-// //                         assignmentData
-// //                     );
-// //                 }
-
-// //                 setAssignments((previous) =>
-// //                     previous.map((item) =>
-// //                         item.id === editingAssignment.id
-// //                             ? {
-// //                                   ...item,
-// //                                   ...assignmentData,
-// //                               }
-// //                             : item
-// //                     )
-// //                 );
-
-// //                 Swal.fire({
-// //                     icon: 'success',
-// //                     title: 'Updated',
-// //                     text: 'Teacher assignment has been updated successfully.',
-// //                     confirmButtonColor: '#198754',
-// //                 });
-// //             } else {
-// //                 let newRecord = {
-// //                     id: `TA-${Date.now()}`,
-// //                     ...assignmentData,
-// //                 };
-
-// //                 if (
-// //                     typeof mockStorage.addTeacherAssignment ===
-// //                     'function'
-// //                 ) {
-// //                     const result =
-// //                         mockStorage.addTeacherAssignment(
-// //                             assignmentData
-// //                         );
-
-// //                     if (result) {
-// //                         newRecord = result;
-// //                     }
-// //                 }
-
-// //                 setAssignments((previous) => [
-// //                     ...previous,
-// //                     newRecord,
-// //                 ]);
-
-// //                 Swal.fire({
-// //                     icon: 'success',
-// //                     title: 'Added',
-// //                     text: 'Teacher assignment has been added successfully.',
-// //                     confirmButtonColor: '#198754',
-// //                 });
-// //             }
-
-// //             closeModal();
-// //         } catch (error) {
-// //             console.error(
-// //                 'Error saving teacher assignment:',
-// //                 error
-// //             );
-
-// //             Swal.fire({
-// //                 icon: 'error',
-// //                 title: 'Error',
-// //                 text: 'Unable to save teacher assignment.',
-// //                 confirmButtonColor: '#198754',
-// //             });
-// //         } finally {
-// //             setSaving(false);
-// //         }
-// //     };
-
-// //     // --------------------------------------------------
-// //     // DELETE ASSIGNMENT
-// //     // --------------------------------------------------
-
-// //     const handleDelete = async (assignment) => {
-// //         const result = await Swal.fire({
-// //             icon: 'warning',
-// //             title: 'Delete Assignment?',
-// //             text: `Are you sure you want to delete the assignment for ${
-// //                 assignment.teacher ||
-// //                 assignment.teacher_name ||
-// //                 'this teacher'
-// //             }?`,
-// //             showCancelButton: true,
-// //             confirmButtonText: 'Yes, Delete',
-// //             cancelButtonText: 'Cancel',
-// //             confirmButtonColor: '#dc3545',
-// //             cancelButtonColor: '#6c757d',
-// //         });
-
-// //         if (!result.isConfirmed) {
-// //             return;
-// //         }
-
-// //         try {
-// //             // API intentionally disabled.
-// //             // await api.delete(
-// //             //     `/teacher-assignments/${assignment.id}`
-// //             // );
-
-// //             if (
-// //                 typeof mockStorage.deleteTeacherAssignment ===
-// //                 'function'
-// //             ) {
-// //                 mockStorage.deleteTeacherAssignment(
-// //                     assignment.id
-// //                 );
-// //             }
-
-// //             setAssignments((previous) =>
-// //                 previous.filter(
-// //                     (item) => item.id !== assignment.id
-// //                 )
-// //             );
-
-// //             Swal.fire({
-// //                 icon: 'success',
-// //                 title: 'Deleted',
-// //                 text: 'Teacher assignment has been deleted successfully.',
-// //                 confirmButtonColor: '#198754',
-// //             });
-// //         } catch (error) {
-// //             console.error(
-// //                 'Error deleting teacher assignment:',
-// //                 error
-// //             );
-
-// //             Swal.fire({
-// //                 icon: 'error',
-// //                 title: 'Error',
-// //                 text: 'Unable to delete teacher assignment.',
-// //                 confirmButtonColor: '#198754',
-// //             });
-// //         }
-// //     };
-
-// //     // --------------------------------------------------
-// //     // FIELD ERROR
-// //     // --------------------------------------------------
-
-// //     const fieldError = (fieldName) => {
-// //         if (!errors[fieldName]) {
-// //             return null;
-// //         }
-
-// //         return (
-// //             <div
-// //                 className="text-danger"
-// //                 style={{
-// //                     fontSize: '12px',
-// //                     marginTop: '5px',
-// //                 }}
-// //             >
-// //                 {errors[fieldName]}
-// //             </div>
-// //         );
-// //     };
-
-// //     // --------------------------------------------------
-// //     // SEARCH
-// //     // --------------------------------------------------
-
-// //     const filteredAssignments = assignments.filter(
-// //         (assignment) => {
-// //             const searchValue = search.toLowerCase();
-
-// //             return (
-// //                 String(
-// //                     assignment.teacher ||
-// //                         assignment.teacher_name ||
-// //                         ''
-// //                 )
-// //                     .toLowerCase()
-// //                     .includes(searchValue) ||
-// //                 String(
-// //                     assignment.academic_year ||
-// //                         assignment.academicYear ||
-// //                         ''
-// //                 )
-// //                     .toLowerCase()
-// //                     .includes(searchValue) ||
-// //                 String(
-// //                     assignment.class_name ||
-// //                         assignment.className ||
-// //                         ''
-// //                 )
-// //                     .toLowerCase()
-// //                     .includes(searchValue) ||
-// //                 String(assignment.section || '')
-// //                     .toLowerCase()
-// //                     .includes(searchValue) ||
-// //                 String(assignment.subject || '')
-// //                     .toLowerCase()
-// //                     .includes(searchValue)
-// //             );
-// //         }
-// //     );
-
-// //     // --------------------------------------------------
-// //     // UI
-// //     // --------------------------------------------------
-
-// //     return (
-// //         <div className="academic-years-page">
-
-// //             {/* PAGE HEADER */}
-// //             <div className="academic-years-header">
-
-// //                 <div>
-// //                     <p className="section-kicker">
-// //                         Academic Management
-// //                     </p>
-
-// //                     <h1>Teacher Assignments</h1>
-
-// //                     <p className="hero-copy">
-// //                         Manage teacher assignments and
-// //                         academic subjects.
-// //                     </p>
-// //                 </div>
-
-// //                 <button
-// //                     type="button"
-// //                     className="btn btn-primary academic-years-add"
-// //                     onClick={openAddModal}
-// //                 >
-// //                     <i className="bi bi-plus-lg me-2"></i>
-// //                     Add Assignment
-// //                 </button>
-
-// //             </div>
-
-// //             {/* TABLE PANEL */}
-// //             <div className="dashboard-panel academic-years-panel">
-
-// //                 {/* PANEL HEADER */}
-// //                 <div className="academic-years-panel-heading">
-
-// //                     <div>
-// //                         <p className="section-kicker">
-// //                             Academic management
-// //                         </p>
-
-// //                         <h2>Teacher Assignment List</h2>
-// //                     </div>
-
-// //                     <div className="d-flex align-items-center gap-3">
-
-// //                         {/* SEARCH */}
-// //                         <div className="student-search">
-
-// //                             <i className="bi bi-search"></i>
-
-// //                             <input
-// //                                 type="text"
-// //                                 value={search}
-// //                                 onChange={(event) =>
-// //                                     setSearch(
-// //                                         event.target.value
-// //                                     )
-// //                                 }
-// //                                 placeholder="Search assignments..."
-// //                             />
-
-// //                         </div>
-
-// //                         <span className="panel-count">
-// //                             {filteredAssignments.length}{' '}
-// //                             records
-// //                         </span>
-
-// //                     </div>
-// //                 </div>
-
-// //                 {/* TABLE */}
-// //                 <div className="academic-years-table-wrap">
-
-// //                     {loading ? (
-// //                         <div
-// //                             className="d-flex justify-content-center align-items-center"
-// //                             style={{
-// //                                 minHeight: '250px',
-// //                             }}
-// //                         >
-// //                             <div
-// //                                 className="spinner-border text-success"
-// //                                 role="status"
-// //                             >
-// //                                 <span className="visually-hidden">
-// //                                     Loading...
-// //                                 </span>
-// //                             </div>
-// //                         </div>
-// //                     ) : filteredAssignments.length === 0 ? (
-// //                         <div
-// //                             className="text-center py-5"
-// //                             style={{
-// //                                 minHeight: '250px',
-// //                             }}
-// //                         >
-// //                             <div
-// //                                 style={{
-// //                                     fontSize: '42px',
-// //                                     marginBottom: '15px',
-// //                                     opacity: 0.6,
-// //                                 }}
-// //                             >
-// //                                 <i className="bi bi-person-workspace"></i>
-// //                             </div>
-
-// //                             <h4>
-// //                                 No teacher assignments found
-// //                             </h4>
-
-// //                             <p className="text-muted">
-// //                                 Add a teacher assignment to
-// //                                 get started.
-// //                             </p>
-
-// //                             <button
-// //                                 type="button"
-// //                                 className="btn btn-primary"
-// //                                 onClick={openAddModal}
-// //                             >
-// //                                 <i className="bi bi-plus-lg me-2"></i>
-// //                                 Add Assignment
-// //                             </button>
-// //                         </div>
-// //                     ) : (
-// //                         <div className="table-responsive">
-
-// //                             <table className="academic-years-table">
-
-// //                                 <thead>
-// //                                     <tr>
-// //                                         <th>#</th>
-// //                                         <th>Teacher</th>
-// //                                         <th>Academic Year</th>
-// //                                         <th>Class</th>
-// //                                         <th>Section</th>
-// //                                         <th>Subject</th>
-// //                                         <th>Actions</th>
-// //                                     </tr>
-// //                                 </thead>
-
-// //                                 <tbody>
-
-// //                                     {filteredAssignments.map(
-// //                                         (
-// //                                             assignment,
-// //                                             index
-// //                                         ) => (
-// //                                             <tr
-// //                                                 key={
-// //                                                     assignment.id ||
-// //                                                     index
-// //                                                 }
-// //                                             >
-
-// //                                                 <td className="academic-years-index">
-// //                                                     {index + 1}
-// //                                                 </td>
-
-// //                                                 <td>
-// //                                                     <strong>
-// //                                                         {assignment.teacher ||
-// //                                                             assignment.teacher_name ||
-// //                                                             '-'}
-// //                                                     </strong>
-// //                                                 </td>
-
-// //                                                 <td>
-// //                                                     {assignment.academic_year ||
-// //                                                         assignment.academicYear ||
-// //                                                         '-'}
-// //                                                 </td>
-
-// //                                                 <td>
-// //                                                     {assignment.class_name ||
-// //                                                         assignment.className ||
-// //                                                         '-'}
-// //                                                 </td>
-
-// //                                                 <td>
-// //                                                     {assignment.section ||
-// //                                                         '-'}
-// //                                                 </td>
-
-// //                                                 <td>
-// //                                                     {assignment.subject ||
-// //                                                         '-'}
-// //                                                 </td>
-
-// //                                                 <td>
-
-// //                                                     <div className="academic-actions">
-
-// //                                                         {/* EDIT */}
-// //                                                         <button
-// //                                                             type="button"
-// //                                                             className="academic-action-button edit"
-// //                                                             title="Edit"
-// //                                                             onClick={() =>
-// //                                                                 openEditModal(
-// //                                                                     assignment
-// //                                                                 )
-// //                                                             }
-// //                                                         >
-// //                                                             <i className="bi bi-pencil"></i>
-// //                                                         </button>
-
-// //                                                         {/* DELETE */}
-// //                                                         <button
-// //                                                             type="button"
-// //                                                             className="academic-action-button delete"
-// //                                                             title="Delete"
-// //                                                             onClick={() =>
-// //                                                                 handleDelete(
-// //                                                                     assignment
-// //                                                                 )
-// //                                                             }
-// //                                                         >
-// //                                                             <i className="bi bi-trash"></i>
-// //                                                         </button>
-
-// //                                                     </div>
-
-// //                                                 </td>
-
-// //                                             </tr>
-// //                                         )
-// //                                     )}
-
-// //                                 </tbody>
-
-// //                             </table>
-
-// //                         </div>
-// //                     )}
-
-// //                 </div>
-
-// //             </div>
-
-// //             {/* ADD / EDIT MODAL */}
-// //             {showModal && (
-// //                 <div className="student-modal-overlay">
-
-// //                     <div className="student-modal">
-
-// //                         {/* MODAL HEADER */}
-// //                         <div className="student-modal-header">
-
-// //                             <div>
-
-// //                                 <span className="section-kicker">
-// //                                     Teacher Assignment
-// //                                 </span>
-
-// //                                 <h3>
-// //                                     {editingAssignment
-// //                                         ? 'Edit Teacher Assignment'
-// //                                         : 'Add Teacher Assignment'}
-// //                                 </h3>
-
-// //                                 <p>
-// //                                     {editingAssignment
-// //                                         ? 'Update teacher assignment information.'
-// //                                         : 'Enter teacher assignment information.'}
-// //                                 </p>
-
-// //                             </div>
-
-// //                             <button
-// //                                 type="button"
-// //                                 className="student-modal-close"
-// //                                 onClick={closeModal}
-// //                             >
-// //                                 ×
-// //                             </button>
-
-// //                         </div>
-
-// //                         {/* MODAL BODY */}
-// //                         <div className="student-modal-body">
-
-// //                             <form onSubmit={handleSubmit}>
-
-// //                                 <div className="student-form-grid">
-
-// //                                     {/* TEACHER */}
-// //                                     <div className="form-group">
-
-// //                                         <label>
-// //                                             Teacher *
-// //                                         </label>
-
-// //                                         <input
-// //                                             type="text"
-// //                                             name="teacher"
-// //                                             value={
-// //                                                 form.teacher
-// //                                             }
-// //                                             onChange={
-// //                                                 handleChange
-// //                                             }
-// //                                             placeholder="Enter teacher name"
-// //                                             className={
-// //                                                 errors.teacher
-// //                                                     ? 'is-invalid'
-// //                                                     : ''
-// //                                             }
-// //                                         />
-
-// //                                         {fieldError(
-// //                                             'teacher'
-// //                                         )}
-
-// //                                     </div>
-
-// //                                     {/* ACADEMIC YEAR */}
-// //                                     <div className="form-group">
-
-// //                                         <label>
-// //                                             Academic Year *
-// //                                         </label>
-
-// //                                         <input
-// //                                             type="text"
-// //                                             name="academic_year"
-// //                                             value={
-// //                                                 form.academic_year
-// //                                             }
-// //                                             onChange={
-// //                                                 handleChange
-// //                                             }
-// //                                             placeholder="e.g. 2025-2026"
-// //                                             className={
-// //                                                 errors.academic_year
-// //                                                     ? 'is-invalid'
-// //                                                     : ''
-// //                                             }
-// //                                         />
-
-// //                                         {fieldError(
-// //                                             'academic_year'
-// //                                         )}
-
-// //                                     </div>
-
-// //                                     {/* CLASS */}
-// //                                     <div className="form-group">
-
-// //                                         <label>
-// //                                             Class *
-// //                                         </label>
-
-// //                                         <input
-// //                                             type="text"
-// //                                             name="class_name"
-// //                                             value={
-// //                                                 form.class_name
-// //                                             }
-// //                                             onChange={
-// //                                                 handleChange
-// //                                             }
-// //                                             placeholder="e.g. Class 10"
-// //                                             className={
-// //                                                 errors.class_name
-// //                                                     ? 'is-invalid'
-// //                                                     : ''
-// //                                             }
-// //                                         />
-
-// //                                         {fieldError(
-// //                                             'class_name'
-// //                                         )}
-
-// //                                     </div>
-
-// //                                     {/* SECTION */}
-// //                                     <div className="form-group">
-
-// //                                         <label>
-// //                                             Section *
-// //                                         </label>
-
-// //                                         <input
-// //                                             type="text"
-// //                                             name="section"
-// //                                             value={
-// //                                                 form.section
-// //                                             }
-// //                                             onChange={
-// //                                                 handleChange
-// //                                             }
-// //                                             placeholder="e.g. A"
-// //                                             className={
-// //                                                 errors.section
-// //                                                     ? 'is-invalid'
-// //                                                     : ''
-// //                                             }
-// //                                         />
-
-// //                                         {fieldError(
-// //                                             'section'
-// //                                         )}
-
-// //                                     </div>
-
-// //                                     {/* SUBJECT */}
-// //                                     <div className="form-group">
-
-// //                                         <label>
-// //                                             Subject *
-// //                                         </label>
-
-// //                                         <input
-// //                                             type="text"
-// //                                             name="subject"
-// //                                             value={
-// //                                                 form.subject
-// //                                             }
-// //                                             onChange={
-// //                                                 handleChange
-// //                                             }
-// //                                             placeholder="e.g. Mathematics"
-// //                                             className={
-// //                                                 errors.subject
-// //                                                     ? 'is-invalid'
-// //                                                     : ''
-// //                                             }
-// //                                         />
-
-// //                                         {fieldError(
-// //                                             'subject'
-// //                                         )}
-
-// //                                     </div>
-
-// //                                 </div>
-
-// //                                 {/* MODAL FOOTER */}
-// //                                 <div className="student-modal-footer">
-
-// //                                     <button
-// //                                         type="button"
-// //                                         className="student-modal-cancel"
-// //                                         onClick={closeModal}
-// //                                         disabled={saving}
-// //                                     >
-// //                                         Cancel
-// //                                     </button>
-
-// //                                     <button
-// //                                         type="submit"
-// //                                         className="student-modal-submit"
-// //                                         disabled={saving}
-// //                                     >
-// //                                         {saving ? (
-// //                                             <>
-// //                                                 <span
-// //                                                     className="spinner-border spinner-border-sm me-2"
-// //                                                     role="status"
-// //                                                 ></span>
-
-// //                                                 Saving...
-// //                                             </>
-// //                                         ) : (
-// //                                             <>
-// //                                                 <i className="bi bi-check-lg me-2"></i>
-
-// //                                                 {editingAssignment
-// //                                                     ? 'Update Assignment'
-// //                                                     : 'Save Assignment'}
-// //                                             </>
-// //                                         )}
-// //                                     </button>
-
-// //                                 </div>
-
-// //                             </form>
-
-// //                         </div>
-
-// //                     </div>
-
-// //                 </div>
-// //             )}
-
-// //         </div>
-// //     );
-// // }
-
-// // export default TeacherAssignments;
-
-// import { useEffect, useState } from 'react';
-// import Swal from 'sweetalert2';
-
-// // API is intentionally disabled for frontend/static development.
-// // import api from '../../../services/api';
-
-// import { mockStorage } from '../../../services/mockData';
-
-// const initialForm = {
-//     teacher: '',
-//     academic_year: '',
-//     class_name: '',
-//     section: '',
-//     subject: '',
-// };
-
-// function TeacherAssignments() {
-//     const [assignments, setAssignments] = useState([]);
-//     const [loading, setLoading] = useState(true);
-//     const [saving, setSaving] = useState(false);
-
-//     const [showModal, setShowModal] = useState(false);
-//     const [editingAssignment, setEditingAssignment] = useState(null);
-
-//     const [search, setSearch] = useState('');
-
-//     const [form, setForm] = useState(initialForm);
-//     const [errors, setErrors] = useState({});
-
-//     // --------------------------------------------------
-//     // FETCH ASSIGNMENTS
-//     // --------------------------------------------------
-
-//     const fetchAssignments = async () => {
-//         setLoading(true);
-
-//         try {
-//             // API intentionally disabled.
-//             // const response = await api.get('/teacher-assignments');
-//             // setAssignments(response.data);
-
-//             const data =
-//                 typeof mockStorage.getTeacherAssignments === 'function'
-//                     ? mockStorage.getTeacherAssignments()
-//                     : [];
-
-//             setAssignments(Array.isArray(data) ? data : []);
-//         } catch (error) {
-//             console.error(
-//                 'Error loading teacher assignments:',
-//                 error
-//             );
-
-//             Swal.fire({
-//                 icon: 'error',
-//                 title: 'Error',
-//                 text: 'Unable to load teacher assignment records.',
-//                 confirmButtonColor: '#198754',
-//             });
-
-//             setAssignments([]);
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     useEffect(() => {
-//         fetchAssignments();
-//     }, []);
-
-//     // --------------------------------------------------
-//     // HANDLE INPUT CHANGE
-//     // --------------------------------------------------
-
-//     const handleChange = (event) => {
-//         const { name, value } = event.target;
-
-//         setForm((previous) => ({
-//             ...previous,
-//             [name]: value,
-//         }));
-
-//         if (errors[name]) {
-//             setErrors((previous) => ({
-//                 ...previous,
-//                 [name]: '',
-//             }));
-//         }
-//     };
-
-//     // --------------------------------------------------
-//     // OPEN ADD MODAL
-//     // --------------------------------------------------
-
-//     const openAddModal = () => {
-//         setEditingAssignment(null);
-//         setForm(initialForm);
-//         setErrors({});
-//         setShowModal(true);
-//     };
-
-//     // --------------------------------------------------
-//     // OPEN EDIT MODAL
-//     // --------------------------------------------------
-
-//     const openEditModal = (assignment) => {
-//         setEditingAssignment(assignment);
-
-//         setForm({
-//             teacher:
-//                 assignment.teacher ||
-//                 assignment.teacher_name ||
-//                 '',
-
-//             academic_year:
-//                 assignment.academic_year ||
-//                 assignment.academicYear ||
-//                 '',
-
-//             class_name:
-//                 assignment.class_name ||
-//                 assignment.className ||
-//                 '',
-
-//             section:
-//                 assignment.section || '',
-
-//             subject:
-//                 assignment.subject || '',
-//         });
-
-//         setErrors({});
-//         setShowModal(true);
-//     };
-
-//     // --------------------------------------------------
-//     // CLOSE MODAL
-//     // --------------------------------------------------
-
-//     const closeModal = () => {
-//         if (saving) return;
-
-//         setShowModal(false);
-//         setEditingAssignment(null);
-//         setForm(initialForm);
-//         setErrors({});
-//     };
-
-//     // --------------------------------------------------
-//     // VALIDATE FORM
-//     // --------------------------------------------------
-
-//     const validateForm = () => {
-//         const newErrors = {};
-
-//         if (!form.teacher.trim()) {
-//             newErrors.teacher = 'Teacher is required.';
-//         }
-
-//         if (!form.academic_year.trim()) {
-//             newErrors.academic_year =
-//                 'Academic Year is required.';
-//         }
-
-//         if (!form.class_name.trim()) {
-//             newErrors.class_name = 'Class is required.';
-//         }
-
-//         if (!form.section.trim()) {
-//             newErrors.section = 'Section is required.';
-//         }
-
-//         if (!form.subject.trim()) {
-//             newErrors.subject = 'Subject is required.';
-//         }
-
-//         setErrors(newErrors);
-
-//         return Object.keys(newErrors).length === 0;
-//     };
-
-//     // --------------------------------------------------
-//     // SUBMIT FORM
-//     // --------------------------------------------------
-
-//     const handleSubmit = async (event) => {
-//         event.preventDefault();
-
-//         if (!validateForm()) {
-//             Swal.fire({
-//                 icon: 'warning',
-//                 title: 'Required Fields',
-//                 text: 'Please complete all required fields.',
-//                 confirmButtonColor: '#198754',
-//             });
-
-//             return;
-//         }
-
-//         setSaving(true);
-
-//         try {
-//             const assignmentData = {
-//                 teacher: form.teacher.trim(),
-//                 academic_year:
-//                     form.academic_year.trim(),
-//                 class_name:
-//                     form.class_name.trim(),
-//                 section:
-//                     form.section.trim(),
-//                 subject:
-//                     form.subject.trim(),
-//             };
-
-//             // --------------------------------------------------
-//             // API IS INTENTIONALLY DISABLED
-//             // --------------------------------------------------
-
-//             /*
-//             if (editingAssignment) {
-//                 await api.put(
-//                     `/teacher-assignments/${editingAssignment.id}`,
-//                     assignmentData
-//                 );
-//             } else {
-//                 await api.post(
-//                     '/teacher-assignments',
-//                     assignmentData
-//                 );
-//             }
-//             */
-
-//             // --------------------------------------------------
-//             // MOCK STORAGE
-//             // --------------------------------------------------
-
-//             if (editingAssignment) {
-//                 if (
-//                     typeof mockStorage.updateTeacherAssignment ===
-//                     'function'
-//                 ) {
-//                     mockStorage.updateTeacherAssignment(
-//                         editingAssignment.id,
-//                         assignmentData
-//                     );
-//                 }
-
-//                 setAssignments((previous) =>
-//                     previous.map((item) =>
-//                         item.id === editingAssignment.id
-//                             ? {
-//                                   ...item,
-//                                   ...assignmentData,
-//                               }
-//                             : item
-//                     )
-//                 );
-
-//                 Swal.fire({
-//                     icon: 'success',
-//                     title: 'Updated',
-//                     text: 'Teacher assignment has been updated successfully.',
-//                     confirmButtonColor: '#198754',
-//                 });
-//             } else {
-//                 let newRecord = {
-//                     id: `TA-${Date.now()}`,
-//                     ...assignmentData,
-//                 };
-
-//                 if (
-//                     typeof mockStorage.addTeacherAssignment ===
-//                     'function'
-//                 ) {
-//                     const result =
-//                         mockStorage.addTeacherAssignment(
-//                             assignmentData
-//                         );
-
-//                     if (result) {
-//                         newRecord = result;
-//                     }
-//                 }
-
-//                 setAssignments((previous) => [
-//                     ...previous,
-//                     newRecord,
-//                 ]);
-
-//                 Swal.fire({
-//                     icon: 'success',
-//                     title: 'Added',
-//                     text: 'Teacher assignment has been added successfully.',
-//                     confirmButtonColor: '#198754',
-//                 });
-//             }
-
-//             closeModal();
-//         } catch (error) {
-//             console.error(
-//                 'Error saving teacher assignment:',
-//                 error
-//             );
-
-//             Swal.fire({
-//                 icon: 'error',
-//                 title: 'Error',
-//                 text: 'Unable to save teacher assignment.',
-//                 confirmButtonColor: '#198754',
-//             });
-//         } finally {
-//             setSaving(false);
-//         }
-//     };
-
-//     // --------------------------------------------------
-//     // DELETE ASSIGNMENT
-//     // --------------------------------------------------
-
-//     const handleDelete = async (assignment) => {
-//         const result = await Swal.fire({
-//             icon: 'warning',
-//             title: 'Delete Assignment?',
-//             text: `Are you sure you want to delete the assignment for ${
-//                 assignment.teacher ||
-//                 assignment.teacher_name ||
-//                 'this teacher'
-//             }?`,
-//             showCancelButton: true,
-//             confirmButtonText: 'Yes, Delete',
-//             cancelButtonText: 'Cancel',
-//             confirmButtonColor: '#dc3545',
-//             cancelButtonColor: '#6c757d',
-//         });
-
-//         if (!result.isConfirmed) {
-//             return;
-//         }
-
-//         try {
-//             // API intentionally disabled.
-//             // await api.delete(
-//             //     `/teacher-assignments/${assignment.id}`
-//             // );
-
-//             if (
-//                 typeof mockStorage.deleteTeacherAssignment ===
-//                 'function'
-//             ) {
-//                 mockStorage.deleteTeacherAssignment(
-//                     assignment.id
-//                 );
-//             }
-
-//             setAssignments((previous) =>
-//                 previous.filter(
-//                     (item) => item.id !== assignment.id
-//                 )
-//             );
-
-//             Swal.fire({
-//                 icon: 'success',
-//                 title: 'Deleted',
-//                 text: 'Teacher assignment has been deleted successfully.',
-//                 confirmButtonColor: '#198754',
-//             });
-//         } catch (error) {
-//             console.error(
-//                 'Error deleting teacher assignment:',
-//                 error
-//             );
-
-//             Swal.fire({
-//                 icon: 'error',
-//                 title: 'Error',
-//                 text: 'Unable to delete teacher assignment.',
-//                 confirmButtonColor: '#198754',
-//             });
-//         }
-//     };
-
-//     // --------------------------------------------------
-//     // FIELD ERROR
-//     // --------------------------------------------------
-
-//     const fieldError = (fieldName) => {
-//         if (!errors[fieldName]) {
-//             return null;
-//         }
-
-//         return (
-//             <div
-//                 className="text-danger"
-//                 style={{
-//                     fontSize: '12px',
-//                     marginTop: '5px',
-//                 }}
-//             >
-//                 {errors[fieldName]}
-//             </div>
-//         );
-//     };
-
-//     // --------------------------------------------------
-//     // SEARCH
-//     // --------------------------------------------------
-
-//     const filteredAssignments = assignments.filter(
-//         (assignment) => {
-//             const searchValue = search.toLowerCase();
-
-//             return (
-//                 String(
-//                     assignment.teacher ||
-//                         assignment.teacher_name ||
-//                         ''
-//                 )
-//                     .toLowerCase()
-//                     .includes(searchValue) ||
-
-//                 String(
-//                     assignment.academic_year ||
-//                         assignment.academicYear ||
-//                         ''
-//                 )
-//                     .toLowerCase()
-//                     .includes(searchValue) ||
-
-//                 String(
-//                     assignment.class_name ||
-//                         assignment.className ||
-//                         ''
-//                 )
-//                     .toLowerCase()
-//                     .includes(searchValue) ||
-
-//                 String(assignment.section || '')
-//                     .toLowerCase()
-//                     .includes(searchValue) ||
-
-//                 String(assignment.subject || '')
-//                     .toLowerCase()
-//                     .includes(searchValue)
-//             );
-//         }
-//     );
-
-//     // --------------------------------------------------
-//     // UI
-//     // --------------------------------------------------
-
-//     return (
-//         <div className="academic-years-page">
-
-//             {/* PAGE HEADER */}
-//             <div className="academic-years-header">
-
-//                 <div>
-//                     <p className="section-kicker">
-//                         Academic Management
-//                     </p>
-
-//                     <h1>Teacher Assignments</h1>
-
-//                     <p className="hero-copy">
-//                         Manage teacher assignments and
-//                         academic subjects.
-//                     </p>
-//                 </div>
-
-//                 <button
-//                     type="button"
-//                     className="btn btn-primary academic-years-add"
-//                     onClick={openAddModal}
-//                 >
-//                     <i className="bi bi-plus-lg me-2"></i>
-//                     Add Assignment
-//                 </button>
-
-//             </div>
-
-//             {/* TABLE PANEL */}
-//             <div className="dashboard-panel academic-years-panel">
-
-//                 {/* PANEL HEADER */}
-//                 <div className="academic-years-panel-heading">
-
-//                     <div>
-//                         <p className="section-kicker">
-//                             Academic management
-//                         </p>
-
-//                         <h2>Teacher Assignment List</h2>
-//                     </div>
-
-//                     <div className="d-flex align-items-center gap-3">
-
-//                         {/* SEARCH */}
-//                         <div className="student-search">
-
-//                             <i className="bi bi-search"></i>
-
-//                             <input
-//                                 type="text"
-//                                 value={search}
-//                                 onChange={(event) =>
-//                                     setSearch(
-//                                         event.target.value
-//                                     )
-//                                 }
-//                                 placeholder="Search assignments..."
-//                             />
-
-//                         </div>
-
-//                         <span className="panel-count">
-//                             {filteredAssignments.length}{' '}
-//                             records
-//                         </span>
-
-//                     </div>
-
-//                 </div>
-
-//                 {/* TABLE */}
-//                 <div className="academic-years-table-wrap">
-
-//                     {loading ? (
-//                         <div
-//                             className="d-flex justify-content-center align-items-center"
-//                             style={{
-//                                 minHeight: '250px',
-//                             }}
-//                         >
-//                             <div
-//                                 className="spinner-border text-success"
-//                                 role="status"
-//                             >
-//                                 <span className="visually-hidden">
-//                                     Loading...
-//                                 </span>
-//                             </div>
-//                         </div>
-//                     ) : filteredAssignments.length === 0 ? (
-//                         <div
-//                             className="text-center py-5"
-//                             style={{
-//                                 minHeight: '250px',
-//                             }}
-//                         >
-//                             <div
-//                                 style={{
-//                                     fontSize: '42px',
-//                                     marginBottom: '15px',
-//                                     opacity: 0.6,
-//                                 }}
-//                             >
-//                                 <i className="bi bi-person-workspace"></i>
-//                             </div>
-
-//                             <h4>
-//                                 No teacher assignments found
-//                             </h4>
-
-//                             <p className="text-muted">
-//                                 Add a teacher assignment to
-//                                 get started.
-//                             </p>
-
-//                             <button
-//                                 type="button"
-//                                 className="btn btn-primary"
-//                                 onClick={openAddModal}
-//                             >
-//                                 <i className="bi bi-plus-lg me-2"></i>
-//                                 Add Assignment
-//                             </button>
-//                         </div>
-//                     ) : (
-//                         <div className="table-responsive">
-
-//                             <table className="academic-years-table">
-
-//                                 <thead>
-//                                     <tr>
-//                                         <th>#</th>
-//                                         <th>Teacher</th>
-//                                         <th>Academic Year</th>
-//                                         <th>Class</th>
-//                                         <th>Section</th>
-//                                         <th>Subject</th>
-//                                         <th>Actions</th>
-//                                     </tr>
-//                                 </thead>
-
-//                                 <tbody>
-
-//                                     {filteredAssignments.map(
-//                                         (
-//                                             assignment,
-//                                             index
-//                                         ) => (
-//                                             <tr
-//                                                 key={
-//                                                     assignment.id ||
-//                                                     index
-//                                                 }
-//                                             >
-
-//                                                 <td className="academic-years-index">
-//                                                     {index + 1}
-//                                                 </td>
-
-//                                                 <td>
-//                                                     <strong>
-//                                                         {assignment.teacher ||
-//                                                             assignment.teacher_name ||
-//                                                             '-'}
-//                                                     </strong>
-//                                                 </td>
-
-//                                                 <td>
-//                                                     {assignment.academic_year ||
-//                                                         assignment.academicYear ||
-//                                                         '-'}
-//                                                 </td>
-
-//                                                 <td>
-//                                                     {assignment.class_name ||
-//                                                         assignment.className ||
-//                                                         '-'}
-//                                                 </td>
-
-//                                                 <td>
-//                                                     {assignment.section ||
-//                                                         '-'}
-//                                                 </td>
-
-//                                                 <td>
-//                                                     {assignment.subject ||
-//                                                         '-'}
-//                                                 </td>
-
-//                                                 <td>
-
-//                                                     <div className="academic-actions">
-
-//                                                         {/* EDIT */}
-//                                                         <button
-//                                                             type="button"
-//                                                             className="academic-action-button edit"
-//                                                             title="Edit"
-//                                                             onClick={() =>
-//                                                                 openEditModal(
-//                                                                     assignment
-//                                                                 )
-//                                                             }
-//                                                         >
-//                                                             <i className="bi bi-pencil"></i>
-//                                                         </button>
-
-//                                                         {/* DELETE */}
-//                                                         <button
-//                                                             type="button"
-//                                                             className="academic-action-button delete"
-//                                                             title="Delete"
-//                                                             onClick={() =>
-//                                                                 handleDelete(
-//                                                                     assignment
-//                                                                 )
-//                                                             }
-//                                                         >
-//                                                             <i className="bi bi-trash"></i>
-//                                                         </button>
-
-//                                                     </div>
-
-//                                                 </td>
-
-//                                             </tr>
-//                                         )
-//                                     )}
-
-//                                 </tbody>
-
-//                             </table>
-
-//                         </div>
-//                     )}
-
-//                 </div>
-
-//             </div>
-
-//             {/* ADD / EDIT MODAL */}
-//             {showModal && (
-//                 <div className="student-modal-overlay">
-
-//                     <div className="student-modal">
-
-//                         {/* MODAL HEADER */}
-//                         <div className="student-modal-header">
-
-//                             <div>
-
-//                                 <span className="section-kicker">
-//                                     Teacher Assignment
-//                                 </span>
-
-//                                 <h3>
-//                                     {editingAssignment
-//                                         ? 'Edit Teacher Assignment'
-//                                         : 'Add Teacher Assignment'}
-//                                 </h3>
-
-//                                 <p>
-//                                     {editingAssignment
-//                                         ? 'Update teacher assignment information.'
-//                                         : 'Enter teacher assignment information.'}
-//                                 </p>
-
-//                             </div>
-
-//                             <button
-//                                 type="button"
-//                                 className="student-modal-close"
-//                                 onClick={closeModal}
-//                             >
-//                                 ×
-//                             </button>
-
-//                         </div>
-
-//                         {/* MODAL BODY */}
-//                         <div className="student-modal-body">
-
-//                             <form onSubmit={handleSubmit}>
-
-//                                 <div className="student-form-grid">
-
-//                                     {/* TEACHER */}
-//                                     <div className="form-group">
-
-//                                         <label>
-//                                             Teacher *
-//                                         </label>
-
-//                                         <input
-//                                             type="text"
-//                                             name="teacher"
-//                                             value={
-//                                                 form.teacher
-//                                             }
-//                                             onChange={
-//                                                 handleChange
-//                                             }
-//                                             placeholder="Enter teacher name"
-//                                             className={
-//                                                 errors.teacher
-//                                                     ? 'is-invalid'
-//                                                     : ''
-//                                             }
-//                                         />
-
-//                                         {fieldError(
-//                                             'teacher'
-//                                         )}
-
-//                                     </div>
-
-//                                     {/* ACADEMIC YEAR */}
-//                                     <div className="form-group">
-
-//                                         <label>
-//                                             Academic Year *
-//                                         </label>
-
-//                                         <input
-//                                             type="text"
-//                                             name="academic_year"
-//                                             value={
-//                                                 form.academic_year
-//                                             }
-//                                             onChange={
-//                                                 handleChange
-//                                             }
-//                                             placeholder="e.g. 2025-2026"
-//                                             className={
-//                                                 errors.academic_year
-//                                                     ? 'is-invalid'
-//                                                     : ''
-//                                             }
-//                                         />
-
-//                                         {fieldError(
-//                                             'academic_year'
-//                                         )}
-
-//                                     </div>
-
-//                                     {/* CLASS */}
-//                                     <div className="form-group">
-
-//                                         <label>
-//                                             Class *
-//                                         </label>
-
-//                                         <input
-//                                             type="text"
-//                                             name="class_name"
-//                                             value={
-//                                                 form.class_name
-//                                             }
-//                                             onChange={
-//                                                 handleChange
-//                                             }
-//                                             placeholder="e.g. Class 10"
-//                                             className={
-//                                                 errors.class_name
-//                                                     ? 'is-invalid'
-//                                                     : ''
-//                                             }
-//                                         />
-
-//                                         {fieldError(
-//                                             'class_name'
-//                                         )}
-
-//                                     </div>
-
-//                                     {/* SECTION */}
-//                                     <div className="form-group">
-
-//                                         <label>
-//                                             Section *
-//                                         </label>
-
-//                                         <input
-//                                             type="text"
-//                                             name="section"
-//                                             value={
-//                                                 form.section
-//                                             }
-//                                             onChange={
-//                                                 handleChange
-//                                             }
-//                                             placeholder="e.g. A"
-//                                             className={
-//                                                 errors.section
-//                                                     ? 'is-invalid'
-//                                                     : ''
-//                                             }
-//                                         />
-
-//                                         {fieldError(
-//                                             'section'
-//                                         )}
-
-//                                     </div>
-
-//                                     {/* SUBJECT */}
-//                                     <div className="form-group">
-
-//                                         <label>
-//                                             Subject *
-//                                         </label>
-
-//                                         <input
-//                                             type="text"
-//                                             name="subject"
-//                                             value={
-//                                                 form.subject
-//                                             }
-//                                             onChange={
-//                                                 handleChange
-//                                             }
-//                                             placeholder="e.g. Mathematics"
-//                                             className={
-//                                                 errors.subject
-//                                                     ? 'is-invalid'
-//                                                     : ''
-//                                             }
-//                                         />
-
-//                                         {fieldError(
-//                                             'subject'
-//                                         )}
-
-//                                     </div>
-
-//                                 </div>
-
-//                                 {/* MODAL FOOTER */}
-//                                 <div className="student-modal-footer">
-
-//                                     <button
-//                                         type="button"
-//                                         className="student-modal-cancel"
-//                                         onClick={closeModal}
-//                                         disabled={saving}
-//                                     >
-//                                         Cancel
-//                                     </button>
-
-//                                     <button
-//                                         type="submit"
-//                                         className="student-modal-submit"
-//                                         disabled={saving}
-//                                     >
-//                                         {saving ? (
-//                                             <>
-//                                                 <span
-//                                                     className="spinner-border spinner-border-sm me-2"
-//                                                     role="status"
-//                                                 ></span>
-
-//                                                 Saving...
-//                                             </>
-//                                         ) : (
-//                                             <>
-//                                                 <i className="bi bi-check-lg me-2"></i>
-
-//                                                 {editingAssignment
-//                                                     ? 'Update Assignment'
-//                                                     : 'Save Assignment'}
-//                                             </>
-//                                         )}
-//                                     </button>
-
-//                                 </div>
-
-//                             </form>
-
-//                         </div>
-
-//                     </div>
-
-//                 </div>
-//             )}
-
-//         </div>
-//     );
-// }
 
 // export default TeacherAssignments;
-
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
@@ -1980,10 +95,10 @@ function TeacherAssignments() {
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
-    const [editingAssignment, setEditingAssignment] =
-        useState(null);
+    const [editingAssignment, setEditingAssignment] = useState(null);
 
     const [search, setSearch] = useState('');
 
@@ -2008,28 +123,20 @@ function TeacherAssignments() {
                 typeof mockStorage.getTeacherAssignments ===
                 'function'
             ) {
-                data =
-                    mockStorage.getTeacherAssignments();
+                data = mockStorage.getTeacherAssignments();
             }
 
             // ==================================================
             // DEMO DATA
             // ==================================================
 
-            if (
-                !Array.isArray(data) ||
-                data.length === 0
-            ) {
-                data = demoTeacherAssignments.map(
-                    (item) => ({
-                        ...item,
-                    })
-                );
+            if (!Array.isArray(data) || data.length === 0) {
+                data = demoTeacherAssignments.map((item) => ({
+                    ...item,
+                }));
             }
 
-            setAssignments(
-                Array.isArray(data) ? data : []
-            );
+            setAssignments(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(
                 'Error loading teacher assignments:',
@@ -2038,11 +145,9 @@ function TeacherAssignments() {
 
             // If storage fails, still show demo records
             setAssignments(
-                demoTeacherAssignments.map(
-                    (item) => ({
-                        ...item,
-                    })
-                )
+                demoTeacherAssignments.map((item) => ({
+                    ...item,
+                }))
             );
 
             Swal.fire({
@@ -2057,6 +162,7 @@ function TeacherAssignments() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchAssignments();
     }, []);
 
@@ -2085,6 +191,8 @@ function TeacherAssignments() {
     // ==================================================
 
     const openAddModal = () => {
+        if (deletingId !== null) return;
+
         setEditingAssignment(null);
         setForm({ ...initialForm });
         setErrors({});
@@ -2096,6 +204,8 @@ function TeacherAssignments() {
     // ==================================================
 
     const openEditModal = (assignment) => {
+        if (deletingId !== null) return;
+
         setEditingAssignment(assignment);
 
         setForm({
@@ -2114,11 +224,9 @@ function TeacherAssignments() {
                 assignment.className ||
                 '',
 
-            section:
-                assignment.section || '',
+            section: assignment.section || '',
 
-            subject:
-                assignment.subject || '',
+            subject: assignment.subject || '',
         });
 
         setErrors({});
@@ -2146,8 +254,7 @@ function TeacherAssignments() {
         const newErrors = {};
 
         if (!form.teacher.trim()) {
-            newErrors.teacher =
-                'Teacher is required.';
+            newErrors.teacher = 'Teacher is required.';
         }
 
         if (!form.academic_year.trim()) {
@@ -2156,18 +263,15 @@ function TeacherAssignments() {
         }
 
         if (!form.class_name.trim()) {
-            newErrors.class_name =
-                'Class is required.';
+            newErrors.class_name = 'Class is required.';
         }
 
         if (!form.section.trim()) {
-            newErrors.section =
-                'Section is required.';
+            newErrors.section = 'Section is required.';
         }
 
         if (!form.subject.trim()) {
-            newErrors.subject =
-                'Subject is required.';
+            newErrors.subject = 'Subject is required.';
         }
 
         setErrors(newErrors);
@@ -2181,6 +285,8 @@ function TeacherAssignments() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (saving || deletingId !== null) return;
 
         if (!validateForm()) {
             Swal.fire({
@@ -2198,33 +304,11 @@ function TeacherAssignments() {
         try {
             const assignmentData = {
                 teacher: form.teacher.trim(),
-                academic_year:
-                    form.academic_year.trim(),
-                class_name:
-                    form.class_name.trim(),
-                section:
-                    form.section.trim(),
-                subject:
-                    form.subject.trim(),
+                academic_year: form.academic_year.trim(),
+                class_name: form.class_name.trim(),
+                section: form.section.trim(),
+                subject: form.subject.trim(),
             };
-
-            // ==================================================
-            // API DISABLED
-            // ==================================================
-
-            /*
-            if (editingAssignment) {
-                await api.put(
-                    `/teacher-assignments/${editingAssignment.id}`,
-                    assignmentData
-                );
-            } else {
-                await api.post(
-                    '/teacher-assignments',
-                    assignmentData
-                );
-            }
-            */
 
             // ==================================================
             // UPDATE
@@ -2243,8 +327,7 @@ function TeacherAssignments() {
 
                 setAssignments((previous) =>
                     previous.map((item) =>
-                        item.id ===
-                        editingAssignment.id
+                        item.id === editingAssignment.id
                             ? {
                                   ...item,
                                   ...assignmentData,
@@ -2253,7 +336,9 @@ function TeacherAssignments() {
                     )
                 );
 
-                Swal.fire({
+                closeModal();
+
+                await Swal.fire({
                     icon: 'success',
                     title: 'Updated',
                     text: 'Teacher assignment has been updated successfully.',
@@ -2290,15 +375,15 @@ function TeacherAssignments() {
                     newRecord,
                 ]);
 
-                Swal.fire({
+                closeModal();
+
+                await Swal.fire({
                     icon: 'success',
                     title: 'Added',
                     text: 'Teacher assignment has been added successfully.',
                     confirmButtonColor: '#198754',
                 });
             }
-
-            closeModal();
         } catch (error) {
             console.error(
                 'Error saving teacher assignment:',
@@ -2321,6 +406,8 @@ function TeacherAssignments() {
     // ==================================================
 
     const handleDelete = async (assignment) => {
+        if (deletingId !== null) return;
+
         const teacherName =
             assignment.teacher ||
             assignment.teacher_name ||
@@ -2333,6 +420,7 @@ function TeacherAssignments() {
             showCancelButton: true,
             confirmButtonText: 'Yes, Delete',
             cancelButtonText: 'Cancel',
+            reverseButtons: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
         });
@@ -2342,10 +430,7 @@ function TeacherAssignments() {
         }
 
         try {
-            // API intentionally disabled.
-            // await api.delete(
-            //     `/teacher-assignments/${assignment.id}`
-            // );
+            setDeletingId(assignment.id);
 
             if (
                 typeof mockStorage.deleteTeacherAssignment ===
@@ -2358,12 +443,11 @@ function TeacherAssignments() {
 
             setAssignments((previous) =>
                 previous.filter(
-                    (item) =>
-                        item.id !== assignment.id
+                    (item) => item.id !== assignment.id
                 )
             );
 
-            Swal.fire({
+            await Swal.fire({
                 icon: 'success',
                 title: 'Deleted',
                 text: 'Teacher assignment has been deleted successfully.',
@@ -2381,6 +465,8 @@ function TeacherAssignments() {
                 text: 'Unable to delete teacher assignment.',
                 confirmButtonColor: '#198754',
             });
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -2395,11 +481,7 @@ function TeacherAssignments() {
 
         return (
             <div
-                className="text-danger"
-                style={{
-                    fontSize: '12px',
-                    marginTop: '5px',
-                }}
+                className="text-danger small mt-1"
             >
                 {errors[fieldName]}
             </div>
@@ -2410,8 +492,8 @@ function TeacherAssignments() {
     // SEARCH
     // ==================================================
 
-    const filteredAssignments =
-        assignments.filter((assignment) => {
+    const filteredAssignments = assignments.filter(
+        (assignment) => {
             const searchValue = search
                 .toLowerCase()
                 .trim();
@@ -2441,19 +523,16 @@ function TeacherAssignments() {
                     .toLowerCase()
                     .includes(searchValue) ||
 
-                String(
-                    assignment.section || ''
-                )
+                String(assignment.section || '')
                     .toLowerCase()
                     .includes(searchValue) ||
 
-                String(
-                    assignment.subject || ''
-                )
+                String(assignment.subject || '')
                     .toLowerCase()
                     .includes(searchValue)
             );
-        });
+        }
+    );
 
     // ==================================================
     // UI
@@ -2462,60 +541,55 @@ function TeacherAssignments() {
     return (
         <div className="academic-years-page teacher-assignments-page">
 
-            {/* ==========================================
+            {/* ==================================================
                 PAGE HEADER
-            ========================================== */}
+            ================================================== */}
 
             <div className="academic-years-header">
-
                 <div>
-
                     <p className="section-kicker">
-                        ACADEMIC MANAGEMENT
+                        Academic
                     </p>
 
-                    <h1>
-                        Teacher Assignments
-                    </h1>
+                    <h1>Teacher Assignments</h1>
 
                     <p className="hero-copy">
-                        Manage teacher assignment
-                        records and information.
+                        Manage teacher assignment records
+                        and information.
                     </p>
-
                 </div>
 
                 <button
                     type="button"
                     className="btn btn-primary academic-years-add"
                     onClick={openAddModal}
+                    disabled={deletingId !== null}
                 >
-                    <i className="bi bi-plus-lg me-2"></i>
+                    <i
+                        className="bi bi-plus-lg"
+                        aria-hidden="true"
+                    ></i>
                     Add Assignment
                 </button>
-
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 MAIN PANEL
-            ========================================== */}
+            ================================================== */}
 
             <div className="dashboard-panel academic-years-panel">
 
                 {/* PANEL HEADER */}
 
                 <div className="academic-years-panel-heading">
-
                     <div>
-
                         <p className="section-kicker">
-                            ACADEMIC MANAGEMENT
+                            Academic management
                         </p>
 
                         <h2>
                             Teacher Assignment List
                         </h2>
-
                     </div>
 
                     <div className="d-flex align-items-center gap-3">
@@ -2523,8 +597,10 @@ function TeacherAssignments() {
                         {/* SEARCH */}
 
                         <div className="student-search">
-
-                            <i className="bi bi-search"></i>
+                            <i
+                                className="bi bi-search"
+                                aria-hidden="true"
+                            ></i>
 
                             <input
                                 type="text"
@@ -2536,215 +612,306 @@ function TeacherAssignments() {
                                 }
                                 placeholder="Search assignments..."
                             />
-
                         </div>
 
                         <span className="panel-count">
-                            {filteredAssignments.length}{' '}
-                            records
+                            {filteredAssignments.length} records
                         </span>
-
                     </div>
-
                 </div>
 
-                {/* ======================================
+                {/* ==================================================
                     TABLE
-                ====================================== */}
+                ================================================== */}
 
                 <div className="academic-years-table-wrap">
 
                     {loading ? (
-
-                        <div
-                            className="d-flex justify-content-center align-items-center"
-                            style={{
-                                minHeight: '250px',
-                            }}
-                        >
-
+                        <div className="academic-years-empty">
                             <div
-                                className="spinner-border text-success"
+                                className="spinner-border spinner-border-sm text-primary"
                                 role="status"
                             >
-
                                 <span className="visually-hidden">
                                     Loading...
                                 </span>
-
                             </div>
 
+                            <p>
+                                Loading teacher assignments...
+                            </p>
                         </div>
-
                     ) : filteredAssignments.length === 0 ? (
+                        <div className="academic-years-empty">
 
-                        <div
-                            className="text-center py-5"
-                            style={{
-                                minHeight: '250px',
-                            }}
-                        >
+                            <i
+                                className="bi bi-person-workspace"
+                                aria-hidden="true"
+                            ></i>
 
-                            <div
-                                style={{
-                                    fontSize: '42px',
-                                    marginBottom: '15px',
-                                    opacity: 0.6,
-                                }}
-                            >
-                                <i className="bi bi-person-workspace"></i>
-                            </div>
+                            <h3>
+                                {search
+                                    ? 'No teacher assignments found'
+                                    : 'No teacher assignments yet'}
+                            </h3>
 
-                            <h4>
-                                No teacher assignments found
-                            </h4>
-
-                            <p className="text-muted">
-                                Add a teacher assignment
-                                to get started.
+                            <p>
+                                {search
+                                    ? 'Try a different search.'
+                                    : 'Add your first teacher assignment to get started.'}
                             </p>
 
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={openAddModal}
-                            >
-                                <i className="bi bi-plus-lg me-2"></i>
-                                Add Assignment
-                            </button>
-
+                            {!search && (
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={openAddModal}
+                                    disabled={
+                                        deletingId !== null
+                                    }
+                                >
+                                    <i className="bi bi-plus-lg me-2"></i>
+                                    Add Assignment
+                                </button>
+                            )}
                         </div>
-
                     ) : (
-
-                        <div className="table-responsive">
-
-                            <table className="academic-years-table">
-
+                        <div
+                            className="table-responsive"
+                            style={{ width: '100%' }}
+                        >
+                            <table
+                                className="academic-years-table"
+                                style={{
+                                    width: '100%',
+                                    minWidth: '100%',
+                                    tableLayout: 'auto',
+                                }}
+                            >
                                 <thead>
-
                                     <tr>
-                                        <th>#</th>
-                                        <th>TEACHER</th>
-                                        <th>ACADEMIC YEAR</th>
-                                        <th>CLASS</th>
-                                        <th>SECTION</th>
-                                        <th>SUBJECT</th>
-                                        <th>ACTIONS</th>
-                                    </tr>
+                                        <th
+                                            style={{
+                                                width: '60px',
+                                                minWidth: '60px',
+                                            }}
+                                        >
+                                            #
+                                        </th>
 
+                                        <th
+                                            style={{
+                                                minWidth: '190px',
+                                            }}
+                                        >
+                                            Teacher
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '170px',
+                                            }}
+                                        >
+                                            Academic Year
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '140px',
+                                            }}
+                                        >
+                                            Class
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '120px',
+                                            }}
+                                        >
+                                            Section
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '190px',
+                                            }}
+                                        >
+                                            Subject
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                width: '120px',
+                                                minWidth: '120px',
+                                                textAlign: 'right',
+                                            }}
+                                        >
+                                            Actions
+                                        </th>
+                                    </tr>
                                 </thead>
 
                                 <tbody>
-
                                     {filteredAssignments.map(
                                         (
                                             assignment,
                                             index
-                                        ) => (
+                                        ) => {
+                                            const isDeleting =
+                                                deletingId ===
+                                                assignment.id;
 
-                                            <tr
-                                                key={
-                                                    assignment.id ||
-                                                    index
-                                                }
-                                            >
+                                            return (
+                                                <tr
+                                                    key={
+                                                        assignment.id ||
+                                                        index
+                                                    }
+                                                    style={
+                                                        isDeleting
+                                                            ? {
+                                                                  opacity: 0.6,
+                                                              }
+                                                            : undefined
+                                                    }
+                                                >
+                                                    {/* NUMBER */}
 
-                                                <td className="academic-years-index">
-                                                    {index + 1}
-                                                </td>
+                                                    <td>
+                                                        <span className="academic-years-index">
+                                                            {String(
+                                                                index +
+                                                                    1
+                                                            ).padStart(
+                                                                2,
+                                                                '0'
+                                                            )}
+                                                        </span>
+                                                    </td>
 
-                                                <td>
-                                                    <strong>
-                                                        {assignment.teacher ||
-                                                            assignment.teacher_name ||
+                                                    {/* TEACHER */}
+
+                                                    <td>
+                                                        <div className="student-table-name">
+                                                            <div className="student-avatar">
+                                                                <i className="bi bi-person"></i>
+                                                            </div>
+
+                                                            <div>
+                                                                <div className="fw-semibold">
+                                                                    {assignment.teacher ||
+                                                                        assignment.teacher_name ||
+                                                                        '-'}
+                                                                </div>
+
+                                                                <div className="text-muted small">
+                                                                    Teacher Assignment
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* ACADEMIC YEAR */}
+
+                                                    <td>
+                                                        {assignment.academic_year ||
+                                                            assignment.academicYear ||
                                                             '-'}
-                                                    </strong>
-                                                </td>
+                                                    </td>
 
-                                                <td>
-                                                    {assignment.academic_year ||
-                                                        assignment.academicYear ||
-                                                        '-'}
-                                                </td>
+                                                    {/* CLASS */}
 
-                                                <td>
-                                                    {assignment.class_name ||
-                                                        assignment.className ||
-                                                        '-'}
-                                                </td>
+                                                    <td>
+                                                        {assignment.class_name ||
+                                                            assignment.className ||
+                                                            '-'}
+                                                    </td>
 
-                                                <td>
-                                                    {assignment.section ||
-                                                        '-'}
-                                                </td>
+                                                    {/* SECTION */}
 
-                                                <td>
-                                                    {assignment.subject ||
-                                                        '-'}
-                                                </td>
+                                                    <td>
+                                                        {assignment.section ||
+                                                            '-'}
+                                                    </td>
 
-                                                <td>
+                                                    {/* SUBJECT */}
 
-                                                    <div className="academic-actions">
+                                                    <td>
+                                                        <span className="fw-semibold">
+                                                            {assignment.subject ||
+                                                                '-'}
+                                                        </span>
+                                                    </td>
 
-                                                        {/* EDIT */}
+                                                    {/* ACTIONS */}
 
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button edit"
-                                                            title="Edit"
-                                                            onClick={() =>
-                                                                openEditModal(
-                                                                    assignment
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-pencil"></i>
-                                                        </button>
+                                                    <td>
+                                                        <div className="academic-actions">
 
-                                                        {/* DELETE */}
+                                                            {/* EDIT */}
 
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button delete"
-                                                            title="Delete"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    assignment
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-trash"></i>
-                                                        </button>
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button edit"
+                                                                title="Edit assignment"
+                                                                onClick={() =>
+                                                                    openEditModal(
+                                                                        assignment
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                <i className="bi bi-pencil"></i>
+                                                            </button>
 
-                                                    </div>
+                                                            {/* DELETE */}
 
-                                                </td>
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button delete"
+                                                                title="Delete assignment"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        assignment
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                {isDeleting ? (
+                                                                    <span
+                                                                        className="spinner-border spinner-border-sm"
+                                                                        role="status"
+                                                                        aria-hidden="true"
+                                                                    ></span>
+                                                                ) : (
+                                                                    <i className="bi bi-trash3"></i>
+                                                                )}
+                                                            </button>
 
-                                            </tr>
-
-                                        )
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
                                     )}
-
                                 </tbody>
-
                             </table>
-
                         </div>
-
                     )}
-
                 </div>
-
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 ADD / EDIT MODAL
-            ========================================== */}
+            ================================================== */}
 
             {showModal && (
-
                 <div className="student-modal-overlay">
 
                     <div className="student-modal">
@@ -2752,11 +919,9 @@ function TeacherAssignments() {
                         {/* MODAL HEADER */}
 
                         <div className="student-modal-header">
-
                             <div>
-
                                 <span className="section-kicker">
-                                    TEACHER ASSIGNMENT
+                                    Teacher Assignment
                                 </span>
 
                                 <h3>
@@ -2768,37 +933,33 @@ function TeacherAssignments() {
                                 <p>
                                     {editingAssignment
                                         ? 'Update teacher assignment information.'
-                                        : 'Enter teacher assignment information.'}
+                                        : 'Create a new teacher assignment record.'}
                                 </p>
-
                             </div>
 
                             <button
                                 type="button"
                                 className="student-modal-close"
                                 onClick={closeModal}
+                                disabled={saving}
                             >
-                                ×
+                                &times;
                             </button>
-
                         </div>
 
                         {/* MODAL BODY */}
 
                         <div className="student-modal-body">
-
                             <form
                                 onSubmit={handleSubmit}
                             >
-
                                 <div className="student-form-grid">
 
                                     {/* TEACHER */}
 
                                     <div className="form-group">
-
                                         <label>
-                                            Teacher *
+                                            Teacher <span>*</span>
                                         </label>
 
                                         <input
@@ -2811,6 +972,9 @@ function TeacherAssignments() {
                                                 handleChange
                                             }
                                             placeholder="Enter teacher name"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.teacher
                                                     ? 'is-invalid'
@@ -2821,15 +985,14 @@ function TeacherAssignments() {
                                         {fieldError(
                                             'teacher'
                                         )}
-
                                     </div>
 
                                     {/* ACADEMIC YEAR */}
 
                                     <div className="form-group">
-
                                         <label>
-                                            Academic Year *
+                                            Academic Year{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -2842,6 +1005,9 @@ function TeacherAssignments() {
                                                 handleChange
                                             }
                                             placeholder="e.g. 2025-2026"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.academic_year
                                                     ? 'is-invalid'
@@ -2852,15 +1018,13 @@ function TeacherAssignments() {
                                         {fieldError(
                                             'academic_year'
                                         )}
-
                                     </div>
 
                                     {/* CLASS */}
 
                                     <div className="form-group">
-
                                         <label>
-                                            Class *
+                                            Class <span>*</span>
                                         </label>
 
                                         <input
@@ -2873,6 +1037,9 @@ function TeacherAssignments() {
                                                 handleChange
                                             }
                                             placeholder="e.g. Class 10"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.class_name
                                                     ? 'is-invalid'
@@ -2883,15 +1050,13 @@ function TeacherAssignments() {
                                         {fieldError(
                                             'class_name'
                                         )}
-
                                     </div>
 
                                     {/* SECTION */}
 
                                     <div className="form-group">
-
                                         <label>
-                                            Section *
+                                            Section <span>*</span>
                                         </label>
 
                                         <input
@@ -2904,6 +1069,9 @@ function TeacherAssignments() {
                                                 handleChange
                                             }
                                             placeholder="e.g. A"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.section
                                                     ? 'is-invalid'
@@ -2914,15 +1082,13 @@ function TeacherAssignments() {
                                         {fieldError(
                                             'section'
                                         )}
-
                                     </div>
 
                                     {/* SUBJECT */}
 
                                     <div className="form-group">
-
                                         <label>
-                                            Subject *
+                                            Subject <span>*</span>
                                         </label>
 
                                         <input
@@ -2935,6 +1101,9 @@ function TeacherAssignments() {
                                                 handleChange
                                             }
                                             placeholder="e.g. Mathematics"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.subject
                                                     ? 'is-invalid'
@@ -2945,9 +1114,7 @@ function TeacherAssignments() {
                                         {fieldError(
                                             'subject'
                                         )}
-
                                     </div>
-
                                 </div>
 
                                 {/* MODAL FOOTER */}
@@ -2958,7 +1125,9 @@ function TeacherAssignments() {
                                         type="button"
                                         className="student-modal-cancel"
                                         onClick={closeModal}
-                                        disabled={saving}
+                                        disabled={
+                                            saving
+                                        }
                                     >
                                         Cancel
                                     </button>
@@ -2966,16 +1135,17 @@ function TeacherAssignments() {
                                     <button
                                         type="submit"
                                         className="student-modal-submit"
-                                        disabled={saving}
+                                        disabled={
+                                            saving
+                                        }
                                     >
-
                                         {saving ? (
                                             <>
                                                 <span
                                                     className="spinner-border spinner-border-sm me-2"
                                                     role="status"
+                                                    aria-hidden="true"
                                                 ></span>
-
                                                 Saving...
                                             </>
                                         ) : (
@@ -2987,21 +1157,14 @@ function TeacherAssignments() {
                                                     : 'Save Assignment'}
                                             </>
                                         )}
-
                                     </button>
 
                                 </div>
-
                             </form>
-
                         </div>
-
                     </div>
-
                 </div>
-
             )}
-
         </div>
     );
 }

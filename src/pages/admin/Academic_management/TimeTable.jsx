@@ -7,6 +7,10 @@ import Swal from 'sweetalert2';
 
 import { mockStorage } from '../../../services/mockData';
 
+// ==================================================
+// INITIAL FORM
+// ==================================================
+
 const initialForm = {
     academic_year: '',
     class_name: '',
@@ -19,10 +23,118 @@ const initialForm = {
     room: '',
 };
 
+// ==================================================
+// DEMO / RANDOM DATA
+// ==================================================
+
+const demoTimeTables = [
+    {
+        id: 'TT-001',
+        academic_year: '2025-2026',
+        class_name: 'Class 6',
+        section: 'A',
+        subject: 'Mathematics',
+        teacher: 'Ahmed Khan',
+        day: 'Monday',
+        start_time: '08:00',
+        end_time: '08:45',
+        room: 'Room 101',
+    },
+    {
+        id: 'TT-002',
+        academic_year: '2025-2026',
+        class_name: 'Class 7',
+        section: 'B',
+        subject: 'English',
+        teacher: 'Sarah Ahmed',
+        day: 'Monday',
+        start_time: '08:45',
+        end_time: '09:30',
+        room: 'Room 102',
+    },
+    {
+        id: 'TT-003',
+        academic_year: '2025-2026',
+        class_name: 'Class 8',
+        section: 'A',
+        subject: 'Computer Science',
+        teacher: 'Muhammad Ali',
+        day: 'Tuesday',
+        start_time: '09:00',
+        end_time: '09:45',
+        room: 'Lab 1',
+    },
+    {
+        id: 'TT-004',
+        academic_year: '2025-2026',
+        class_name: 'Class 9',
+        section: 'C',
+        subject: 'Physics',
+        teacher: 'Ayesha Malik',
+        day: 'Tuesday',
+        start_time: '10:00',
+        end_time: '10:45',
+        room: 'Physics Lab',
+    },
+    {
+        id: 'TT-005',
+        academic_year: '2025-2026',
+        class_name: 'Class 10',
+        section: 'A',
+        subject: 'Chemistry',
+        teacher: 'Hassan Raza',
+        day: 'Wednesday',
+        start_time: '08:00',
+        end_time: '08:45',
+        room: 'Chemistry Lab',
+    },
+    {
+        id: 'TT-006',
+        academic_year: '2025-2026',
+        class_name: 'Class 5',
+        section: 'B',
+        subject: 'Urdu',
+        teacher: 'Fatima Noor',
+        day: 'Wednesday',
+        start_time: '09:00',
+        end_time: '09:45',
+        room: 'Room 105',
+    },
+    {
+        id: 'TT-007',
+        academic_year: '2025-2026',
+        class_name: 'Class 8',
+        section: 'C',
+        subject: 'Biology',
+        teacher: 'Usman Tariq',
+        day: 'Thursday',
+        start_time: '10:00',
+        end_time: '10:45',
+        room: 'Biology Lab',
+    },
+    {
+        id: 'TT-008',
+        academic_year: '2025-2026',
+        class_name: 'Class 7',
+        section: 'A',
+        subject: 'General Science',
+        teacher: 'Mariam Iqbal',
+        day: 'Friday',
+        start_time: '11:00',
+        end_time: '11:45',
+        room: 'Room 107',
+    },
+];
+
+// ==================================================
+// COMPONENT
+// ==================================================
+
 function TimeTable() {
     const [timeTables, setTimeTables] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
     const [editingTimeTable, setEditingTimeTable] = useState(null);
@@ -32,9 +144,9 @@ function TimeTable() {
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
 
-    // --------------------------------------------------
+    // ==================================================
     // FETCH TIMETABLES
-    // --------------------------------------------------
+    // ==================================================
 
     const fetchTimeTables = async () => {
         setLoading(true);
@@ -44,14 +156,38 @@ function TimeTable() {
             // const response = await api.get('/timetables');
             // setTimeTables(response.data);
 
-            const data =
-                typeof mockStorage.getTimeTables === 'function'
-                    ? mockStorage.getTimeTables()
-                    : [];
+            let data = [];
+
+            if (
+                typeof mockStorage.getTimeTables ===
+                'function'
+            ) {
+                data = mockStorage.getTimeTables();
+            }
+
+            // ==================================================
+            // DEMO DATA
+            // ==================================================
+
+            if (!Array.isArray(data) || data.length === 0) {
+                data = demoTimeTables.map((item) => ({
+                    ...item,
+                }));
+            }
 
             setTimeTables(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Error loading timetable:', error);
+            console.error(
+                'Error loading timetables:',
+                error
+            );
+
+            // If storage fails, still show demo records
+            setTimeTables(
+                demoTimeTables.map((item) => ({
+                    ...item,
+                }))
+            );
 
             Swal.fire({
                 icon: 'error',
@@ -59,20 +195,19 @@ function TimeTable() {
                 text: 'Unable to load timetable records.',
                 confirmButtonColor: '#198754',
             });
-
-            setTimeTables([]);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchTimeTables();
     }, []);
 
-    // --------------------------------------------------
-    // FORM CHANGE
-    // --------------------------------------------------
+    // ==================================================
+    // HANDLE INPUT CHANGE
+    // ==================================================
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -90,22 +225,26 @@ function TimeTable() {
         }
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // OPEN ADD MODAL
-    // --------------------------------------------------
+    // ==================================================
 
     const openAddModal = () => {
+        if (deletingId !== null) return;
+
         setEditingTimeTable(null);
-        setForm(initialForm);
+        setForm({ ...initialForm });
         setErrors({});
         setShowModal(true);
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // OPEN EDIT MODAL
-    // --------------------------------------------------
+    // ==================================================
 
     const openEditModal = (timeTable) => {
+        if (deletingId !== null) return;
+
         setEditingTimeTable(timeTable);
 
         setForm({
@@ -119,16 +258,22 @@ function TimeTable() {
                 timeTable.className ||
                 '',
 
-            section: timeTable.section || '',
+            section:
+                timeTable.section ||
+                '',
 
-            subject: timeTable.subject || '',
+            subject:
+                timeTable.subject ||
+                '',
 
             teacher:
                 timeTable.teacher ||
                 timeTable.teacher_name ||
                 '',
 
-            day: timeTable.day || '',
+            day:
+                timeTable.day ||
+                '',
 
             start_time:
                 timeTable.start_time ||
@@ -140,72 +285,78 @@ function TimeTable() {
                 timeTable.endTime ||
                 '',
 
-            room: timeTable.room || '',
+            room:
+                timeTable.room ||
+                '',
         });
 
         setErrors({});
         setShowModal(true);
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // CLOSE MODAL
-    // --------------------------------------------------
+    // ==================================================
 
     const closeModal = () => {
         if (saving) return;
 
         setShowModal(false);
         setEditingTimeTable(null);
-        setForm(initialForm);
+        setForm({ ...initialForm });
         setErrors({});
     };
 
-    // --------------------------------------------------
-    // VALIDATION
-    // --------------------------------------------------
+    // ==================================================
+    // VALIDATE FORM
+    // ==================================================
 
     const validateForm = () => {
         const newErrors = {};
 
         if (!form.academic_year.trim()) {
-            newErrors.academic_year = 'Academic Year is required.';
+            newErrors.academic_year =
+                'Academic Year is required.';
         }
 
         if (!form.class_name.trim()) {
-            newErrors.class_name = 'Class is required.';
+            newErrors.class_name =
+                'Class is required.';
         }
 
         if (!form.section.trim()) {
-            newErrors.section = 'Section is required.';
+            newErrors.section =
+                'Section is required.';
         }
 
         if (!form.subject.trim()) {
-            newErrors.subject = 'Subject is required.';
+            newErrors.subject =
+                'Subject is required.';
         }
 
         if (!form.teacher.trim()) {
-            newErrors.teacher = 'Teacher is required.';
+            newErrors.teacher =
+                'Teacher is required.';
         }
 
         if (!form.day.trim()) {
-            newErrors.day = 'Day is required.';
+            newErrors.day =
+                'Day is required.';
         }
 
-        if (!form.start_time) {
-            newErrors.start_time = 'Start Time is required.';
+        if (!form.start_time.trim()) {
+            newErrors.start_time =
+                'Start Time is required.';
         }
 
-        if (!form.end_time) {
-            newErrors.end_time = 'End Time is required.';
-        }
-
-        if (
-            form.start_time &&
-            form.end_time &&
-            form.start_time >= form.end_time
-        ) {
+        if (!form.end_time.trim()) {
             newErrors.end_time =
-                'End Time must be later than Start Time.';
+                'End Time is required.';
+        }
+
+        if (!form.room.trim()) {
+            newErrors.room =
+                'Room is required.';
         }
 
         setErrors(newErrors);
@@ -213,12 +364,14 @@ function TimeTable() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // SUBMIT FORM
-    // --------------------------------------------------
+    // ==================================================
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (saving || deletingId !== null) return;
 
         if (!validateForm()) {
             Swal.fire({
@@ -234,42 +387,47 @@ function TimeTable() {
         setSaving(true);
 
         try {
-            const timetableData = {
-                academic_year: form.academic_year.trim(),
-                class_name: form.class_name.trim(),
-                section: form.section.trim(),
-                subject: form.subject.trim(),
-                teacher: form.teacher.trim(),
-                day: form.day,
-                start_time: form.start_time,
-                end_time: form.end_time,
-                room: form.room.trim(),
+            const timeTableData = {
+                academic_year:
+                    form.academic_year.trim(),
+
+                class_name:
+                    form.class_name.trim(),
+
+                section:
+                    form.section.trim(),
+
+                subject:
+                    form.subject.trim(),
+
+                teacher:
+                    form.teacher.trim(),
+
+                day:
+                    form.day.trim(),
+
+                start_time:
+                    form.start_time.trim(),
+
+                end_time:
+                    form.end_time.trim(),
+
+                room:
+                    form.room.trim(),
             };
 
-            // --------------------------------------------------
-            // API IS INTENTIONALLY DISABLED
-            // --------------------------------------------------
-
-            /*
-            if (editingTimeTable) {
-                await api.put(
-                    `/timetables/${editingTimeTable.id}`,
-                    timetableData
-                );
-            } else {
-                await api.post('/timetables', timetableData);
-            }
-            */
-
-            // --------------------------------------------------
-            // MOCK STORAGE
-            // --------------------------------------------------
+            // ==================================================
+            // UPDATE
+            // ==================================================
 
             if (editingTimeTable) {
-                if (typeof mockStorage.updateTimeTable === 'function') {
+                if (
+                    typeof mockStorage.updateTimeTable ===
+                    'function'
+                ) {
                     mockStorage.updateTimeTable(
                         editingTimeTable.id,
-                        timetableData
+                        timeTableData
                     );
                 }
 
@@ -278,27 +436,40 @@ function TimeTable() {
                         item.id === editingTimeTable.id
                             ? {
                                   ...item,
-                                  ...timetableData,
+                                  ...timeTableData,
                               }
                             : item
                     )
                 );
 
-                Swal.fire({
+                closeModal();
+
+                await Swal.fire({
                     icon: 'success',
                     title: 'Updated',
                     text: 'Timetable has been updated successfully.',
                     confirmButtonColor: '#198754',
                 });
-            } else {
+            }
+
+            // ==================================================
+            // ADD
+            // ==================================================
+
+            else {
                 let newRecord = {
                     id: `TT-${Date.now()}`,
-                    ...timetableData,
+                    ...timeTableData,
                 };
 
-                if (typeof mockStorage.addTimeTable === 'function') {
+                if (
+                    typeof mockStorage.addTimeTable ===
+                    'function'
+                ) {
                     const result =
-                        mockStorage.addTimeTable(timetableData);
+                        mockStorage.addTimeTable(
+                            timeTableData
+                        );
 
                     if (result) {
                         newRecord = result;
@@ -310,22 +481,25 @@ function TimeTable() {
                     newRecord,
                 ]);
 
-                Swal.fire({
+                closeModal();
+
+                await Swal.fire({
                     icon: 'success',
                     title: 'Added',
                     text: 'Timetable has been added successfully.',
                     confirmButtonColor: '#198754',
                 });
             }
-
-            closeModal();
         } catch (error) {
-            console.error('Error saving timetable:', error);
+            console.error(
+                'Error saving timetable:',
+                error
+            );
 
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Unable to save timetable record.',
+                text: 'Unable to save timetable.',
                 confirmButtonColor: '#198754',
             });
         } finally {
@@ -333,18 +507,25 @@ function TimeTable() {
         }
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // DELETE TIMETABLE
-    // --------------------------------------------------
+    // ==================================================
 
     const handleDelete = async (timeTable) => {
+        if (deletingId !== null) return;
+
+        const subjectName =
+            timeTable.subject ||
+            'this timetable';
+
         const result = await Swal.fire({
             icon: 'warning',
             title: 'Delete Timetable?',
-            text: `Are you sure you want to delete the timetable for ${timeTable.subject || 'this subject'}?`,
+            text: `Are you sure you want to delete the timetable for ${subjectName}?`,
             showCancelButton: true,
             confirmButtonText: 'Yes, Delete',
             cancelButtonText: 'Cancel',
+            reverseButtons: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
         });
@@ -354,40 +535,50 @@ function TimeTable() {
         }
 
         try {
-            // API intentionally disabled.
-            // await api.delete(`/timetables/${timeTable.id}`);
+            setDeletingId(timeTable.id);
 
-            if (typeof mockStorage.deleteTimeTable === 'function') {
-                mockStorage.deleteTimeTable(timeTable.id);
+            if (
+                typeof mockStorage.deleteTimeTable ===
+                'function'
+            ) {
+                mockStorage.deleteTimeTable(
+                    timeTable.id
+                );
             }
 
             setTimeTables((previous) =>
                 previous.filter(
-                    (item) => item.id !== timeTable.id
+                    (item) =>
+                        item.id !== timeTable.id
                 )
             );
 
-            Swal.fire({
+            await Swal.fire({
                 icon: 'success',
                 title: 'Deleted',
                 text: 'Timetable has been deleted successfully.',
                 confirmButtonColor: '#198754',
             });
         } catch (error) {
-            console.error('Error deleting timetable:', error);
+            console.error(
+                'Error deleting timetable:',
+                error
+            );
 
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Unable to delete timetable record.',
+                text: 'Unable to delete timetable.',
                 confirmButtonColor: '#198754',
             });
+        } finally {
+            setDeletingId(null);
         }
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // FIELD ERROR
-    // --------------------------------------------------
+    // ==================================================
 
     const fieldError = (fieldName) => {
         if (!errors[fieldName]) {
@@ -395,71 +586,100 @@ function TimeTable() {
         }
 
         return (
-            <div
-                className="text-danger"
-                style={{
-                    fontSize: '12px',
-                    marginTop: '5px',
-                }}
-            >
+            <div className="text-danger small mt-1">
                 {errors[fieldName]}
             </div>
         );
     };
 
-    // --------------------------------------------------
+    // ==================================================
     // SEARCH
-    // --------------------------------------------------
+    // ==================================================
 
-    const filteredTimeTables = timeTables.filter((item) => {
-        const searchValue = search.toLowerCase();
+    const filteredTimeTables = timeTables.filter(
+        (timeTable) => {
+            const searchValue = search
+                .toLowerCase()
+                .trim();
 
-        return (
-            String(item.academic_year || '')
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(item.class_name || item.className || '')
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(item.section || '')
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(item.subject || '')
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(
-                item.teacher || item.teacher_name || ''
-            )
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(item.day || '')
-                .toLowerCase()
-                .includes(searchValue) ||
-            String(item.room || '')
-                .toLowerCase()
-                .includes(searchValue)
-        );
-    });
+            return (
+                String(
+                    timeTable.academic_year ||
+                        timeTable.academicYear ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
 
-    // --------------------------------------------------
+                String(
+                    timeTable.class_name ||
+                        timeTable.className ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
+
+                String(
+                    timeTable.section ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
+
+                String(
+                    timeTable.subject ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
+
+                String(
+                    timeTable.teacher ||
+                        timeTable.teacher_name ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
+
+                String(
+                    timeTable.day ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue) ||
+
+                String(
+                    timeTable.room ||
+                        ''
+                )
+                    .toLowerCase()
+                    .includes(searchValue)
+            );
+        }
+    );
+
+    // ==================================================
     // UI
-    // --------------------------------------------------
+    // ==================================================
 
     return (
-        <div className="academic-years-page">
+        <div className="academic-years-page timetable-page">
 
-            {/* PAGE HEADER */}
+            {/* ==================================================
+                PAGE HEADER
+            ================================================== */}
+
             <div className="academic-years-header">
                 <div>
                     <p className="section-kicker">
-                        Academic Management
+                        Academic
                     </p>
 
                     <h1>Time Table</h1>
 
                     <p className="hero-copy">
-                        Manage class schedules and timetable
-                        information.
+                        Manage class timetable records
+                        and schedules.
                     </p>
                 </div>
 
@@ -467,30 +687,44 @@ function TimeTable() {
                     type="button"
                     className="btn btn-primary academic-years-add"
                     onClick={openAddModal}
+                    disabled={deletingId !== null}
                 >
-                    <i className="bi bi-plus-lg me-2"></i>
+                    <i
+                        className="bi bi-plus-lg"
+                        aria-hidden="true"
+                    ></i>
                     Add Time Table
                 </button>
             </div>
 
-            {/* TABLE PANEL */}
+            {/* ==================================================
+                MAIN PANEL
+            ================================================== */}
+
             <div className="dashboard-panel academic-years-panel">
 
                 {/* PANEL HEADER */}
+
                 <div className="academic-years-panel-heading">
                     <div>
                         <p className="section-kicker">
                             Academic management
                         </p>
 
-                        <h2>Time Table List</h2>
+                        <h2>
+                            Time Table List
+                        </h2>
                     </div>
 
                     <div className="d-flex align-items-center gap-3">
 
                         {/* SEARCH */}
+
                         <div className="student-search">
-                            <i className="bi bi-search"></i>
+                            <i
+                                className="bi bi-search"
+                                aria-hidden="true"
+                            ></i>
 
                             <input
                                 type="text"
@@ -505,183 +739,358 @@ function TimeTable() {
                         </div>
 
                         <span className="panel-count">
-                            {filteredTimeTables.length} records
+                            {filteredTimeTables.length}{' '}
+                            records
                         </span>
                     </div>
                 </div>
 
-                {/* TABLE */}
+                {/* ==================================================
+                    TABLE
+                ================================================== */}
+
                 <div className="academic-years-table-wrap">
 
                     {loading ? (
-                        <div
-                            className="d-flex justify-content-center align-items-center"
-                            style={{
-                                minHeight: '250px',
-                            }}
-                        >
+                        <div className="academic-years-empty">
+
                             <div
-                                className="spinner-border text-success"
+                                className="spinner-border spinner-border-sm text-primary"
                                 role="status"
                             >
                                 <span className="visually-hidden">
                                     Loading...
                                 </span>
                             </div>
+
+                            <p>
+                                Loading timetables...
+                            </p>
                         </div>
                     ) : filteredTimeTables.length === 0 ? (
-                        <div
-                            className="text-center py-5"
-                            style={{
-                                minHeight: '250px',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontSize: '42px',
-                                    marginBottom: '15px',
-                                    opacity: 0.6,
-                                }}
-                            >
-                                <i className="bi bi-calendar3"></i>
-                            </div>
+                        <div className="academic-years-empty">
 
-                            <h4>
-                                No timetable records found
-                            </h4>
+                            <i
+                                className="bi bi-calendar3"
+                                aria-hidden="true"
+                            ></i>
 
-                            <p className="text-muted">
-                                Add a timetable record to get
-                                started.
+                            <h3>
+                                {search
+                                    ? 'No timetables found'
+                                    : 'No timetables yet'}
+                            </h3>
+
+                            <p>
+                                {search
+                                    ? 'Try a different search.'
+                                    : 'Add your first timetable to get started.'}
                             </p>
 
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={openAddModal}
-                            >
-                                <i className="bi bi-plus-lg me-2"></i>
-                                Add Time Table
-                            </button>
+                            {!search && (
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={
+                                        openAddModal
+                                    }
+                                    disabled={
+                                        deletingId !==
+                                        null
+                                    }
+                                >
+                                    <i className="bi bi-plus-lg me-2"></i>
+                                    Add Time Table
+                                </button>
+                            )}
                         </div>
                     ) : (
-                        <div className="table-responsive">
-                            <table className="academic-years-table">
+                        <div
+                            className="table-responsive"
+                            style={{
+                                width: '100%',
+                            }}
+                        >
+                            <table
+                                className="academic-years-table"
+                                style={{
+                                    width: '100%',
+                                    minWidth: '100%',
+                                    tableLayout: 'auto',
+                                }}
+                            >
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>Academic Year</th>
-                                        <th>Class</th>
-                                        <th>Section</th>
-                                        <th>Subject</th>
-                                        <th>Teacher</th>
-                                        <th>Day</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Room</th>
-                                        <th>Actions</th>
+
+                                        <th
+                                            style={{
+                                                width: '60px',
+                                                minWidth: '60px',
+                                            }}
+                                        >
+                                            #
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '160px',
+                                            }}
+                                        >
+                                            Academic Year
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '130px',
+                                            }}
+                                        >
+                                            Class
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '100px',
+                                            }}
+                                        >
+                                            Section
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '180px',
+                                            }}
+                                        >
+                                            Subject
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '180px',
+                                            }}
+                                        >
+                                            Teacher
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '130px',
+                                            }}
+                                        >
+                                            Day
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '150px',
+                                            }}
+                                        >
+                                            Time
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                minWidth: '130px',
+                                            }}
+                                        >
+                                            Room
+                                        </th>
+
+                                        <th
+                                            style={{
+                                                width: '120px',
+                                                minWidth: '120px',
+                                                textAlign:
+                                                    'right',
+                                            }}
+                                        >
+                                            Actions
+                                        </th>
+
                                     </tr>
                                 </thead>
 
                                 <tbody>
                                     {filteredTimeTables.map(
-                                        (item, index) => (
-                                            <tr
-                                                key={
-                                                    item.id ||
-                                                    index
-                                                }
-                                            >
-                                                <td className="academic-years-index">
-                                                    {index + 1}
-                                                </td>
+                                        (
+                                            timeTable,
+                                            index
+                                        ) => {
+                                            const isDeleting =
+                                                deletingId ===
+                                                timeTable.id;
 
-                                                <td>
-                                                    {item.academic_year ||
-                                                        '-'}
-                                                </td>
+                                            return (
+                                                <tr
+                                                    key={
+                                                        timeTable.id ||
+                                                        index
+                                                    }
+                                                    style={
+                                                        isDeleting
+                                                            ? {
+                                                                  opacity: 0.6,
+                                                              }
+                                                            : undefined
+                                                    }
+                                                >
 
-                                                <td>
-                                                    {item.class_name ||
-                                                        item.className ||
-                                                        '-'}
-                                                </td>
+                                                    {/* NUMBER */}
 
-                                                <td>
-                                                    {item.section ||
-                                                        '-'}
-                                                </td>
+                                                    <td>
+                                                        <span className="academic-years-index">
+                                                            {String(
+                                                                index +
+                                                                    1
+                                                            ).padStart(
+                                                                2,
+                                                                '0'
+                                                            )}
+                                                        </span>
+                                                    </td>
 
-                                                <td>
-                                                    <strong>
-                                                        {item.subject ||
+                                                    {/* ACADEMIC YEAR */}
+
+                                                    <td>
+                                                        {timeTable.academic_year ||
+                                                            timeTable.academicYear ||
                                                             '-'}
-                                                    </strong>
-                                                </td>
+                                                    </td>
 
-                                                <td>
-                                                    {item.teacher ||
-                                                        item.teacher_name ||
-                                                        '-'}
-                                                </td>
+                                                    {/* CLASS */}
 
-                                                <td>
-                                                    {item.day ||
-                                                        '-'}
-                                                </td>
+                                                    <td>
+                                                        {timeTable.class_name ||
+                                                            timeTable.className ||
+                                                            '-'}
+                                                    </td>
 
-                                                <td>
-                                                    {item.start_time ||
-                                                        item.startTime ||
-                                                        '-'}
-                                                </td>
+                                                    {/* SECTION */}
 
-                                                <td>
-                                                    {item.end_time ||
-                                                        item.endTime ||
-                                                        '-'}
-                                                </td>
+                                                    <td>
+                                                        {timeTable.section ||
+                                                            '-'}
+                                                    </td>
 
-                                                <td>
-                                                    {item.room ||
-                                                        '-'}
-                                                </td>
+                                                    {/* SUBJECT */}
 
-                                                <td>
-                                                    <div className="academic-actions">
+                                                    <td>
+                                                        <div className="student-table-name">
 
-                                                        {/* EDIT */}
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button edit"
-                                                            title="Edit"
-                                                            onClick={() =>
-                                                                openEditModal(
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-pencil"></i>
-                                                        </button>
+                                                            <div className="student-avatar">
+                                                                <i className="bi bi-book"></i>
+                                                            </div>
 
-                                                        {/* DELETE */}
-                                                        <button
-                                                            type="button"
-                                                            className="academic-action-button delete"
-                                                            title="Delete"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            <i className="bi bi-trash"></i>
-                                                        </button>
+                                                            <div>
+                                                                <div className="fw-semibold">
+                                                                    {timeTable.subject ||
+                                                                        '-'}
+                                                                </div>
 
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
+                                                                <div className="text-muted small">
+                                                                    Subject
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </td>
+
+                                                    {/* TEACHER */}
+
+                                                    <td>
+                                                        <div className="fw-semibold">
+                                                            {timeTable.teacher ||
+                                                                timeTable.teacher_name ||
+                                                                '-'}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* DAY */}
+
+                                                    <td>
+                                                        <span className="fw-semibold">
+                                                            {timeTable.day ||
+                                                                '-'}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* TIME */}
+
+                                                    <td>
+                                                        <span className="fw-semibold">
+                                                            {timeTable.start_time ||
+                                                                timeTable.startTime ||
+                                                                '-'}
+                                                            {' - '}
+                                                            {timeTable.end_time ||
+                                                                timeTable.endTime ||
+                                                                '-'}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* ROOM */}
+
+                                                    <td>
+                                                        {timeTable.room ||
+                                                            '-'}
+                                                    </td>
+
+                                                    {/* ACTIONS */}
+
+                                                    <td>
+                                                        <div className="academic-actions">
+
+                                                            {/* EDIT */}
+
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button edit"
+                                                                title="Edit timetable"
+                                                                onClick={() =>
+                                                                    openEditModal(
+                                                                        timeTable
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                <i className="bi bi-pencil"></i>
+                                                            </button>
+
+                                                            {/* DELETE */}
+
+                                                            <button
+                                                                type="button"
+                                                                className="academic-action-button delete"
+                                                                title="Delete timetable"
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        timeTable
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    deletingId !==
+                                                                    null
+                                                                }
+                                                            >
+                                                                {isDeleting ? (
+                                                                    <span
+                                                                        className="spinner-border spinner-border-sm"
+                                                                        role="status"
+                                                                        aria-hidden="true"
+                                                                    ></span>
+                                                                ) : (
+                                                                    <i className="bi bi-trash3"></i>
+                                                                )}
+                                                            </button>
+
+                                                        </div>
+                                                    </td>
+
+                                                </tr>
+                                            );
+                                        }
                                     )}
                                 </tbody>
                             </table>
@@ -690,13 +1099,17 @@ function TimeTable() {
                 </div>
             </div>
 
-            {/* ADD / EDIT MODAL */}
+            {/* ==================================================
+                ADD / EDIT MODAL
+            ================================================== */}
+
             {showModal && (
                 <div className="student-modal-overlay">
 
                     <div className="student-modal">
 
                         {/* MODAL HEADER */}
+
                         <div className="student-modal-header">
 
                             <div>
@@ -713,7 +1126,7 @@ function TimeTable() {
                                 <p>
                                     {editingTimeTable
                                         ? 'Update timetable information.'
-                                        : 'Enter timetable information.'}
+                                        : 'Create a new timetable record.'}
                                 </p>
                             </div>
 
@@ -721,24 +1134,32 @@ function TimeTable() {
                                 type="button"
                                 className="student-modal-close"
                                 onClick={closeModal}
+                                disabled={saving}
                             >
-                                ×
+                                &times;
                             </button>
 
                         </div>
 
                         {/* MODAL BODY */}
+
                         <div className="student-modal-body">
 
-                            <form onSubmit={handleSubmit}>
+                            <form
+                                onSubmit={
+                                    handleSubmit
+                                }
+                            >
 
                                 <div className="student-form-grid">
 
                                     {/* ACADEMIC YEAR */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Academic Year *
+                                            Academic Year{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -751,6 +1172,9 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="e.g. 2025-2026"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.academic_year
                                                     ? 'is-invalid'
@@ -765,10 +1189,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* CLASS */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Class *
+                                            Class{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -781,6 +1207,9 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="e.g. Class 10"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.class_name
                                                     ? 'is-invalid'
@@ -795,10 +1224,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* SECTION */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Section *
+                                            Section{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -811,6 +1242,9 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="e.g. A"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.section
                                                     ? 'is-invalid'
@@ -825,10 +1259,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* SUBJECT */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Subject *
+                                            Subject{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -841,6 +1277,9 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="e.g. Mathematics"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.subject
                                                     ? 'is-invalid'
@@ -855,10 +1294,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* TEACHER */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Teacher *
+                                            Teacher{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -871,6 +1312,9 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="Enter teacher name"
+                                            disabled={
+                                                saving
+                                            }
                                             className={
                                                 errors.teacher
                                                     ? 'is-invalid'
@@ -885,10 +1329,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* DAY */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Day *
+                                            Day{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <select
@@ -898,6 +1344,9 @@ function TimeTable() {
                                             }
                                             onChange={
                                                 handleChange
+                                            }
+                                            disabled={
+                                                saving
                                             }
                                             className={
                                                 errors.day
@@ -932,10 +1381,6 @@ function TimeTable() {
                                             <option value="Saturday">
                                                 Saturday
                                             </option>
-
-                                            <option value="Sunday">
-                                                Sunday
-                                            </option>
                                         </select>
 
                                         {fieldError(
@@ -945,10 +1390,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* START TIME */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Start Time *
+                                            Start Time{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -959,6 +1406,9 @@ function TimeTable() {
                                             }
                                             onChange={
                                                 handleChange
+                                            }
+                                            disabled={
+                                                saving
                                             }
                                             className={
                                                 errors.start_time
@@ -974,10 +1424,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* END TIME */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            End Time *
+                                            End Time{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -988,6 +1440,9 @@ function TimeTable() {
                                             }
                                             onChange={
                                                 handleChange
+                                            }
+                                            disabled={
+                                                saving
                                             }
                                             className={
                                                 errors.end_time
@@ -1003,10 +1458,12 @@ function TimeTable() {
                                     </div>
 
                                     {/* ROOM */}
+
                                     <div className="form-group">
 
                                         <label>
-                                            Room
+                                            Room{' '}
+                                            <span>*</span>
                                         </label>
 
                                         <input
@@ -1019,20 +1476,37 @@ function TimeTable() {
                                                 handleChange
                                             }
                                             placeholder="e.g. Room 101"
+                                            disabled={
+                                                saving
+                                            }
+                                            className={
+                                                errors.room
+                                                    ? 'is-invalid'
+                                                    : ''
+                                            }
                                         />
+
+                                        {fieldError(
+                                            'room'
+                                        )}
 
                                     </div>
 
                                 </div>
 
                                 {/* MODAL FOOTER */}
+
                                 <div className="student-modal-footer">
 
                                     <button
                                         type="button"
                                         className="student-modal-cancel"
-                                        onClick={closeModal}
-                                        disabled={saving}
+                                        onClick={
+                                            closeModal
+                                        }
+                                        disabled={
+                                            saving
+                                        }
                                     >
                                         Cancel
                                     </button>
@@ -1040,13 +1514,16 @@ function TimeTable() {
                                     <button
                                         type="submit"
                                         className="student-modal-submit"
-                                        disabled={saving}
+                                        disabled={
+                                            saving
+                                        }
                                     >
                                         {saving ? (
                                             <>
                                                 <span
                                                     className="spinner-border spinner-border-sm me-2"
                                                     role="status"
+                                                    aria-hidden="true"
                                                 ></span>
 
                                                 Saving...
@@ -1065,7 +1542,6 @@ function TimeTable() {
                                 </div>
 
                             </form>
-
                         </div>
                     </div>
                 </div>
