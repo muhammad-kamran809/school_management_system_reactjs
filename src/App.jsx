@@ -12,9 +12,6 @@ import Classes from './pages/admin/academic/Classes';
 import Sections from './pages/admin/academic/Sections';
 import Subjects from './pages/admin/academic/Subjects';
 import Students from './pages/admin/people/Students';
-import Teachers from './pages/admin/people/Teachers';
-import Staff from './pages/admin/people/Staff';
-// import Parents from './pages/admin/people/Parents';
 import AdminPage from './pages/admin/AdminPage';
 import { adminPages } from './routes/adminPages';
 
@@ -69,6 +66,62 @@ function App() {
                             path="/students"
                             element={<Students />}
                         />
+                        //Academic_management section routes
+                        <Route
+                            path="/TimeTable"
+                            element={<TimeTable />}
+                        />
+                         <Route
+                            path="/teacher-assignments"
+                            element={<TeacherAssignments />}
+                        />
+                         <Route
+                            path="/enrollments"
+                            element={<Enrollments  />}
+                        />
+                        //Attendance section
+                            <Route
+                                 path="/student-attendance"
+                                element={<StudentAttendance />}
+                                                                 /> 
+                            <Route
+                                 path="/teacher-attendance"
+                                element={< TeacherAttendance/>}
+                                                                 />                                  
+                                // Exams section
+                                 <Route
+                                 path="/exams"
+                                element={< Exams/>}
+                                                     />
+                             <Route
+                                 path="/results"
+                                element={< Result/>}
+                                                     />
+                            // Fees sections Routes
+                             <Route
+                                 path="/fees"
+                                element={< Fees/>}
+                                                     />
+                             <Route
+                                 path="/payments"
+                                element={< Payments/>}
+                                                     />
+                            <Route
+                                 path="/fee-reports"
+                                element={< FeeReports/>}
+                                                     />
+                            <Route
+                                 path="/notices"
+                                element={< Notices/>}
+                                                     />
+                            <Route
+                                 path="/events"
+                                element={< Events/>}
+                                                     />
+                             <Route
+                                 path="/school-settings"
+                                element={< SchoolSettings/>}
+                                                     />
 
                         <Route
                             path="/teachers"
