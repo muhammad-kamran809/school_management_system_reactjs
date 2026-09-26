@@ -14,7 +14,7 @@ import Subjects from './pages/admin/academic/Subjects';
 import Students from './pages/admin/people/Students';
 import Teachers from './pages/admin/people/Teachers';
 import Staff from './pages/admin/people/Staff';
-import Parents from './pages/admin/people/Parents';
+// import Parents from './pages/admin/people/Parents';
 import AdminPage from './pages/admin/AdminPage';
 import { adminPages } from './routes/adminPages';
 
@@ -80,10 +80,10 @@ function App() {
                             element={<Staff />}
                         />
 
-                        <Route
+                        {/* <Route
                             path="/parents"
                             element={<Parents />}
-                        />
+                        /> */}
 
                         {adminPages
                             .filter(
