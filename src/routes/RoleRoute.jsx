@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { hasAnyRole } from '../utils/roles';
+import { hasAnyRole, getDashboardRoute } from '../utils/roles';
 
-function RoleRoute({ children, allowedRoles, fallback = '/dashboard' }) {
+function RoleRoute({ children, allowedRoles, fallback }) {
     const { user, loading } = useAuth();
 
     if (loading) {
@@ -20,7 +20,7 @@ function RoleRoute({ children, allowedRoles, fallback = '/dashboard' }) {
     }
 
     if (allowedRoles && allowedRoles.length > 0 && !hasAnyRole(user, allowedRoles)) {
-        return <Navigate to={fallback} replace />;
+        return <Navigate to={fallback || getDashboardRoute(user)} replace />;
     }
 
     return children;

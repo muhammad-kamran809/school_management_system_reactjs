@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+import Pagination from '../../../components/Pagination';
 
 function Subjects() {
     const [subjects, setSubjects] = useState([]);
@@ -20,15 +21,52 @@ function Subjects() {
 
     const [errors, setErrors] = useState({});
 
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0,
+        from: 0,
+        to: 0,
+    });
+
     // =========================
     // Load Subjects
     // =========================
-    const fetchSubjects = async () => {
+    const fetchSubjects = async (page = 1, perPage = pagination.per_page) => {
         try {
             setLoading(true);
-            const response = await api.get('/subjects');
+            const response = await api.get('/subjects', {
+                params: {
+                    page,
+                    per_page: perPage,
+                },
+            });
             const data = response.data?.data || response.data || [];
+            const meta = response.data?.meta || (response.data?.current_page ? response.data : null);
+
             setSubjects(Array.isArray(data) ? data : []);
+
+            if (meta) {
+                setPagination({
+                    current_page: meta.current_page || page,
+                    last_page: meta.last_page || 1,
+                    per_page: meta.per_page || perPage,
+                    total: meta.total ?? (Array.isArray(data) ? data.length : 0),
+                    from: meta.from ?? ((page - 1) * perPage + 1),
+                    to: meta.to ?? ((page - 1) * perPage + (Array.isArray(data) ? data.length : 0)),
+                });
+            } else {
+                const total = Array.isArray(data) ? data.length : 0;
+                setPagination({
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: perPage,
+                    total,
+                    from: total > 0 ? 1 : 0,
+                    to: total,
+                });
+            }
         } catch (error) {
             console.error('Fetch subjects error:', error);
 
@@ -42,6 +80,14 @@ function Subjects() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        fetchSubjects(newPage, pagination.per_page);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        fetchSubjects(1, newPerPage);
     };
 
     useEffect(() => {
@@ -341,7 +387,7 @@ function Subjects() {
                     </div>
 
                     <span className="panel-count">
-                        {subjects.length} records
+                        {pagination.total || subjects.length} records
                     </span>
 
                 </div>
@@ -388,126 +434,134 @@ function Subjects() {
 
                     ) : (
 
-                        <div className="table-responsive">
+                        <>
+                            <div className="table-responsive">
 
-                            <table className="table academic-years-table align-middle mb-0">
+                                <table className="table academic-years-table align-middle mb-0">
 
-                                <thead>
+                                    <thead>
 
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Code</th>
-                                        <th>Description</th>
-                                        <th>Status</th>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Code</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
 
-                                        <th className="text-end">
-                                            Actions
-                                        </th>
-                                    </tr>
+                                            <th className="text-end">
+                                                Actions
+                                            </th>
+                                        </tr>
 
-                                </thead>
+                                    </thead>
 
-                                <tbody>
+                                    <tbody>
 
-                                    {subjects.map(
-                                        (subject, index) => (
+                                        {subjects.map(
+                                            (subject, index) => (
 
-                                            <tr
-                                                key={subject.id}
-                                            >
+                                                <tr
+                                                    key={subject.id}
+                                                >
 
-                                                <td className="academic-years-index">
-                                                    {String(
-                                                        index + 1
-                                                    ).padStart(
-                                                        2,
-                                                        '0'
-                                                    )}
-                                                </td>
+                                                    <td className="academic-years-index">
+                                                        {String(
+                                                            (pagination.from || ((pagination.current_page - 1) * pagination.per_page + 1)) + index
+                                                        ).padStart(
+                                                            2,
+                                                            '0'
+                                                        )}
+                                                    </td>
 
-                                                <td className="fw-semibold">
-                                                    {subject.name}
-                                                </td>
+                                                    <td className="fw-semibold">
+                                                        {subject.name}
+                                                    </td>
 
-                                                <td>
-                                                    <span className="badge bg-light text-dark border">
-                                                        {subject.code}
-                                                    </span>
-                                                </td>
-
-                                                <td>
-                                                    <span className="date-value">
-                                                        {subject.description ||
-                                                            '-'}
-                                                    </span>
-                                                </td>
-
-                                                <td>
-
-                                                    {subject.status ===
-                                                        'active' ? (
-
-                                                        <span className="status-badge active">
-                                                            Active
+                                                    <td>
+                                                        <span className="badge bg-light text-dark border">
+                                                            {subject.code}
                                                         </span>
+                                                    </td>
 
-                                                    ) : (
-
-                                                        <span className="status-badge inactive">
-                                                            Inactive
+                                                    <td>
+                                                        <span className="date-value">
+                                                            {subject.description ||
+                                                                '-'}
                                                         </span>
+                                                    </td>
 
-                                                    )}
+                                                    <td>
 
-                                                </td>
+                                                        {subject.status ===
+                                                            'active' ? (
 
-                                                <td className="text-end">
+                                                            <span className="status-badge active">
+                                                                Active
+                                                            </span>
 
-                                                    <button
-                                                        className="academic-action-button edit"
-                                                        aria-label={`Edit ${subject.name}`}
-                                                        title={`Edit ${subject.name}`}
-                                                        onClick={() =>
-                                                            handleEdit(
-                                                                subject
-                                                            )
-                                                        }
-                                                    >
-                                                        <i
-                                                            className="bi bi-pencil"
-                                                            aria-hidden="true"
-                                                        ></i>
-                                                    </button>
+                                                        ) : (
 
-                                                    <button
-                                                        className="academic-action-button delete"
-                                                        aria-label={`Delete ${subject.name}`}
-                                                        title={`Delete ${subject.name}`}
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                subject.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <i
-                                                            className="bi bi-trash3"
-                                                            aria-hidden="true"
-                                                        ></i>
-                                                    </button>
+                                                            <span className="status-badge inactive">
+                                                                Inactive
+                                                            </span>
 
-                                                </td>
+                                                        )}
 
-                                            </tr>
+                                                    </td>
 
-                                        )
-                                    )}
+                                                    <td className="text-end">
 
-                                </tbody>
+                                                        <button
+                                                            className="academic-action-button edit"
+                                                            aria-label={`Edit ${subject.name}`}
+                                                            title={`Edit ${subject.name}`}
+                                                            onClick={() =>
+                                                                handleEdit(
+                                                                    subject
+                                                                )
+                                                            }
+                                                        >
+                                                            <i
+                                                                className="bi bi-pencil"
+                                                                aria-hidden="true"
+                                                            ></i>
+                                                        </button>
 
-                            </table>
+                                                        <button
+                                                            className="academic-action-button delete"
+                                                            aria-label={`Delete ${subject.name}`}
+                                                            title={`Delete ${subject.name}`}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    subject.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <i
+                                                                className="bi bi-trash3"
+                                                                aria-hidden="true"
+                                                            ></i>
+                                                        </button>
 
-                        </div>
+                                                    </td>
+
+                                                </tr>
+
+                                            )
+                                        )}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <Pagination
+                                pagination={pagination}
+                                onPageChange={handlePageChange}
+                                onPerPageChange={handlePerPageChange}
+                            />
+                        </>
 
                     )}
 

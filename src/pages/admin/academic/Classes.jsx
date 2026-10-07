@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+import Pagination from '../../../components/Pagination';
 
 function Classes() {
     const [classes, setClasses] = useState([]);
@@ -9,6 +10,14 @@ function Classes() {
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [lastPage, setLastPage] = useState(1);
+    const [from, setFrom] = useState(0);
+    const [to, setTo] = useState(0);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -19,12 +28,53 @@ function Classes() {
     const [errors, setErrors] = useState({});
 
     // Fetch classes
-    const fetchClasses = async () => {
+    const fetchClasses = async (page = currentPage, pageSize = perPage) => {
         try {
             setLoading(true);
-            const response = await api.get('/classes');
-            const data = response.data?.data || response.data || [];
-            setClasses(Array.isArray(data) ? data : []);
+            const params = {
+                page: page,
+                per_page: pageSize,
+            };
+            const response = await api.get('/classes', { params });
+
+            let records = [];
+            let curPage = page;
+            let lastPg = 1;
+            let totalRecords = 0;
+            let fromRecord = null;
+            let toRecord = null;
+
+            if (response.data && response.data.meta) {
+                records = Array.isArray(response.data.data) ? response.data.data : [];
+                curPage = response.data.meta.current_page || page;
+                lastPg = response.data.meta.last_page || 1;
+                totalRecords = response.data.meta.total ?? records.length;
+                fromRecord = response.data.meta.from ?? ((curPage - 1) * pageSize + 1);
+                toRecord = response.data.meta.to ?? (fromRecord + records.length - 1);
+            } else if (response.data && (response.data.current_page || response.data.last_page || response.data.total !== undefined)) {
+                records = Array.isArray(response.data.data) ? response.data.data : [];
+                curPage = response.data.current_page || page;
+                lastPg = response.data.last_page || 1;
+                totalRecords = response.data.total ?? records.length;
+                fromRecord = response.data.from ?? ((curPage - 1) * pageSize + 1);
+                toRecord = response.data.to ?? (fromRecord + records.length - 1);
+            } else {
+                const raw = response.data?.data || response.data || [];
+                const list = Array.isArray(raw) ? raw : [];
+                totalRecords = list.length;
+                lastPg = Math.max(1, Math.ceil(totalRecords / pageSize));
+                curPage = Math.min(page, lastPg);
+                fromRecord = totalRecords > 0 ? (curPage - 1) * pageSize + 1 : 0;
+                toRecord = Math.min(curPage * pageSize, totalRecords);
+                records = list.slice((curPage - 1) * pageSize, curPage * pageSize);
+            }
+
+            setClasses(records);
+            setCurrentPage(curPage);
+            setLastPage(lastPg);
+            setTotal(totalRecords);
+            setFrom(fromRecord);
+            setTo(toRecord);
         } catch (error) {
             console.error('Fetch classes error:', error);
 
@@ -38,9 +88,19 @@ function Classes() {
         }
     };
 
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        fetchClasses(newPage, perPage);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        setPerPage(newPerPage);
+        setCurrentPage(1);
+        fetchClasses(1, newPerPage);
+    };
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchClasses();
+        fetchClasses(1, perPage);
     }, []);
 
     // Add class
@@ -270,6 +330,7 @@ function Classes() {
                             <p>Add your first class to get started.</p>
                         </div>
                     ) : (
+                        <>
                         <div className="table-responsive">
                             <table className="table academic-years-table align-middle mb-0">
                                 <thead>
@@ -288,7 +349,9 @@ function Classes() {
                                     {classes.map(
                                         (schoolClass, index) => (
                                             <tr key={schoolClass.id}>
-                                                <td className="academic-years-index">{String(index + 1).padStart(2, '0')}</td>
+                                                <td className="academic-years-index">
+                                                    {String((from || ((currentPage - 1) * perPage + 1)) + index).padStart(2, '0')}
+                                                </td>
 
                                                 <td className="fw-semibold">
                                                     {schoolClass.name}
@@ -346,6 +409,21 @@ function Classes() {
                                 </tbody>
                             </table>
                         </div>
+
+                        <Pagination
+                            currentPage={currentPage}
+                            lastPage={lastPage}
+                            total={total}
+                            perPage={perPage}
+                            from={from}
+                            to={to}
+                            onPageChange={handlePageChange}
+                            onPerPageChange={handlePerPageChange}
+                            itemName="classes"
+                            loading={loading}
+                        />
+                        </>
+
                     )}
                 </div>
             </div>

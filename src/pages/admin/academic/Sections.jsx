@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+import Pagination from '../../../components/Pagination';
 
 function Sections() {
     const [sections, setSections] = useState([]);
@@ -21,15 +22,52 @@ function Sections() {
 
     const [errors, setErrors] = useState({});
 
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0,
+        from: 0,
+        to: 0,
+    });
+
     // =========================
     // GET SECTIONS
     // =========================
-    const fetchSections = async () => {
+    const fetchSections = async (page = 1, perPage = pagination.per_page) => {
         try {
             setLoading(true);
-            const response = await api.get('/sections');
+            const response = await api.get('/sections', {
+                params: {
+                    page,
+                    per_page: perPage,
+                },
+            });
             const data = response.data?.data || response.data || [];
+            const meta = response.data?.meta || (response.data?.current_page ? response.data : null);
+
             setSections(Array.isArray(data) ? data : []);
+
+            if (meta) {
+                setPagination({
+                    current_page: meta.current_page || page,
+                    last_page: meta.last_page || 1,
+                    per_page: meta.per_page || perPage,
+                    total: meta.total ?? (Array.isArray(data) ? data.length : 0),
+                    from: meta.from ?? ((page - 1) * perPage + 1),
+                    to: meta.to ?? ((page - 1) * perPage + (Array.isArray(data) ? data.length : 0)),
+                });
+            } else {
+                const total = Array.isArray(data) ? data.length : 0;
+                setPagination({
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: perPage,
+                    total,
+                    from: total > 0 ? 1 : 0,
+                    to: total,
+                });
+            }
         } catch (error) {
             console.error('Fetch sections error:', error);
             setSections([]);
@@ -59,6 +97,14 @@ function Sections() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        fetchSections(newPage, pagination.per_page);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        fetchSections(1, newPerPage);
     };
 
     // =========================
@@ -394,7 +440,7 @@ function Sections() {
                     </div>
 
                     <span className="panel-count">
-                        {sections.length} records
+                        {pagination.total || sections.length} records
                     </span>
 
                 </div>
@@ -444,132 +490,140 @@ function Sections() {
                     ) : (
 
                         /* TABLE */
-                        <div className="table-responsive">
+                        <>
+                            <div className="table-responsive">
 
-                            <table className="table academic-years-table align-middle mb-0">
+                                <table className="table academic-years-table align-middle mb-0">
 
-                                <thead>
+                                    <thead>
 
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Class</th>
-                                        <th>Section</th>
-                                        <th>Capacity</th>
-                                        <th>Status</th>
-                                        <th className="text-end">
-                                            Actions
-                                        </th>
-                                    </tr>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Class</th>
+                                            <th>Section</th>
+                                            <th>Capacity</th>
+                                            <th>Status</th>
+                                            <th className="text-end">
+                                                Actions
+                                            </th>
+                                        </tr>
 
-                                </thead>
+                                    </thead>
 
-                                <tbody>
+                                    <tbody>
 
-                                    {sections.map(
-                                        (section, index) => {
+                                        {sections.map(
+                                            (section, index) => {
 
-                                            const className =
-                                                section.school_class?.name ||
-                                                section.class?.name ||
-                                                classes.find(
-                                                    (schoolClass) =>
-                                                        schoolClass.id ==
-                                                        section.class_id
-                                                )?.name ||
-                                                '-';
+                                                const className =
+                                                    section.school_class?.name ||
+                                                    section.class?.name ||
+                                                    classes.find(
+                                                        (schoolClass) =>
+                                                            schoolClass.id ==
+                                                            section.class_id
+                                                    )?.name ||
+                                                    '-';
 
-                                            return (
-                                                <tr
-                                                    key={section.id}
-                                                >
+                                                return (
+                                                    <tr
+                                                        key={section.id}
+                                                    >
 
-                                                    <td className="academic-years-index">
-                                                        {String(
-                                                            index + 1
-                                                        ).padStart(
-                                                            2,
-                                                            '0'
-                                                        )}
-                                                    </td>
+                                                        <td className="academic-years-index">
+                                                            {String(
+                                                                (pagination.from || ((pagination.current_page - 1) * pagination.per_page + 1)) + index
+                                                            ).padStart(
+                                                                2,
+                                                                '0'
+                                                            )}
+                                                        </td>
 
-                                                    <td className="fw-semibold">
-                                                        {className}
-                                                    </td>
+                                                        <td className="fw-semibold">
+                                                            {className}
+                                                        </td>
 
-                                                    <td>
-                                                        <span className="date-value">
-                                                            {section.name}
-                                                        </span>
-                                                    </td>
-
-                                                    <td>
-                                                        {section.capacity ??
-                                                            '-'}
-                                                    </td>
-
-                                                    <td>
-
-                                                        {section.status ===
-                                                            'active' ? (
-
-                                                            <span className="status-badge active">
-                                                                Active
+                                                        <td>
+                                                            <span className="date-value">
+                                                                {section.name}
                                                             </span>
+                                                        </td>
 
-                                                        ) : (
+                                                        <td>
+                                                            {section.capacity ??
+                                                                '-'}
+                                                        </td>
 
-                                                            <span className="status-badge inactive">
-                                                                Inactive
-                                                            </span>
+                                                        <td>
 
-                                                        )}
+                                                            {section.status ===
+                                                                'active' ? (
 
-                                                    </td>
+                                                                <span className="status-badge active">
+                                                                    Active
+                                                                </span>
 
-                                                    <td className="text-end">
+                                                            ) : (
 
-                                                        <button
-                                                            className="academic-action-button edit"
-                                                            title={`Edit ${section.name}`}
-                                                            onClick={() =>
-                                                                handleEdit(
-                                                                    section
-                                                                )
-                                                            }
-                                                        >
-                                                            <i
-                                                                className="bi bi-pencil"
-                                                                aria-hidden="true"
-                                                            ></i>
-                                                        </button>
+                                                                <span className="status-badge inactive">
+                                                                    Inactive
+                                                                </span>
 
-                                                        <button
-                                                            className="academic-action-button delete"
-                                                            title={`Delete ${section.name}`}
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    section.id
-                                                                )
-                                                            }
-                                                        >
-                                                            <i
-                                                                className="bi bi-trash3"
-                                                                aria-hidden="true"
-                                                            ></i>
-                                                        </button>
+                                                            )}
 
-                                                    </td>
+                                                        </td>
 
-                                                </tr>
-                                            );
-                                        }
-                                    )}
+                                                        <td className="text-end">
 
-                                </tbody>
+                                                            <button
+                                                                className="academic-action-button edit"
+                                                                title={`Edit ${section.name}`}
+                                                                onClick={() =>
+                                                                    handleEdit(
+                                                                        section
+                                                                    )
+                                                                }
+                                                            >
+                                                                <i
+                                                                    className="bi bi-pencil"
+                                                                    aria-hidden="true"
+                                                                ></i>
+                                                            </button>
 
-                            </table>
+                                                            <button
+                                                                className="academic-action-button delete"
+                                                                title={`Delete ${section.name}`}
+                                                                onClick={() =>
+                                                                    handleDelete(
+                                                                        section.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                <i
+                                                                    className="bi bi-trash3"
+                                                                    aria-hidden="true"
+                                                                ></i>
+                                                            </button>
 
-                        </div>
+                                                        </td>
+
+                                                    </tr>
+                                                );
+                                            }
+                                        )}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <Pagination
+                                pagination={pagination}
+                                onPageChange={handlePageChange}
+                                onPerPageChange={handlePerPageChange}
+                            />
+                        </>
                     )}
 
                 </div>

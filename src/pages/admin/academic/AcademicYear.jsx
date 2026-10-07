@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from "../../../services/api";
+import Pagination from '../../../components/Pagination';
 
 function AcademicYears() {
     const [academicYears, setAcademicYears] = useState([]);
@@ -19,13 +20,50 @@ function AcademicYears() {
 
     const [errors, setErrors] = useState({});
 
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0,
+        from: 0,
+        to: 0,
+    });
+
     // Load academic years
-    const fetchAcademicYears = async () => {
+    const fetchAcademicYears = async (page = 1, perPage = pagination.per_page) => {
         try {
             setLoading(true);
-            const response = await api.get('/academic-years');
+            const response = await api.get('/academic-years', {
+                params: {
+                    page,
+                    per_page: perPage,
+                },
+            });
             const data = response.data?.data || response.data || [];
+            const meta = response.data?.meta || (response.data?.current_page ? response.data : null);
+
             setAcademicYears(Array.isArray(data) ? data : []);
+
+            if (meta) {
+                setPagination({
+                    current_page: meta.current_page || page,
+                    last_page: meta.last_page || 1,
+                    per_page: meta.per_page || perPage,
+                    total: meta.total ?? (Array.isArray(data) ? data.length : 0),
+                    from: meta.from ?? ((page - 1) * perPage + 1),
+                    to: meta.to ?? ((page - 1) * perPage + (Array.isArray(data) ? data.length : 0)),
+                });
+            } else {
+                const total = Array.isArray(data) ? data.length : 0;
+                setPagination({
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: perPage,
+                    total,
+                    from: total > 0 ? 1 : 0,
+                    to: total,
+                });
+            }
         } catch (error) {
             console.error('Fetch academic years error:', error);
 
@@ -37,6 +75,14 @@ function AcademicYears() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        fetchAcademicYears(newPage, pagination.per_page);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        fetchAcademicYears(1, newPerPage);
     };
 
     useEffect(() => {
@@ -229,7 +275,7 @@ function AcademicYears() {
                         <p className="section-kicker">Calendar</p>
                         <h2>Academic year list</h2>
                     </div>
-                    <span className="panel-count">{academicYears.length} records</span>
+                    <span className="panel-count">{pagination.total || academicYears.length} records</span>
                 </div>
 
                 <div className="academic-years-table-wrap">
@@ -253,85 +299,93 @@ function AcademicYears() {
                             <p>Add your first academic year to get started.</p>
                         </div>
                     ) : (
-                        <div className="table-responsive">
-                            <table className="table academic-years-table align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Status</th>
-                                        <th className="text-end">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
+                        <>
+                            <div className="table-responsive">
+                                <table className="table academic-years-table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Status</th>
+                                            <th className="text-end">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
 
-                                <tbody>
-                                    {academicYears.map(
-                                        (academicYear, index) => (
-                                            <tr key={academicYear.id}>
-                                                <td className="academic-years-index">{String(index + 1).padStart(2, '0')}</td>
+                                    <tbody>
+                                        {academicYears.map(
+                                            (academicYear, index) => (
+                                                <tr key={academicYear.id}>
+                                                    <td className="academic-years-index">{String((pagination.from || ((pagination.current_page - 1) * pagination.per_page + 1)) + index).padStart(2, '0')}</td>
 
-                                                <td className="fw-semibold">
-                                                    {academicYear.name}
-                                                </td>
+                                                    <td className="fw-semibold">
+                                                        {academicYear.name}
+                                                    </td>
 
-                                                <td>
-                                                    <span className="date-value">{academicYear.start_date}</span>
-                                                </td>
+                                                    <td>
+                                                        <span className="date-value">{academicYear.start_date}</span>
+                                                    </td>
 
-                                                <td>
-                                                    <span className="date-value">{academicYear.end_date}</span>
-                                                </td>
+                                                    <td>
+                                                        <span className="date-value">{academicYear.end_date}</span>
+                                                    </td>
 
-                                                <td>
-                                                    {academicYear.status ===
-                                                        'active' ? (
-                                                        <span className="status-badge active">
-                                                            Active
-                                                        </span>
-                                                    ) : (
-                                                        <span className="status-badge inactive">
-                                                            Inactive
-                                                        </span>
-                                                    )}
-                                                </td>
+                                                    <td>
+                                                        {academicYear.status ===
+                                                            'active' ? (
+                                                            <span className="status-badge active">
+                                                                Active
+                                                            </span>
+                                                        ) : (
+                                                            <span className="status-badge inactive">
+                                                                Inactive
+                                                            </span>
+                                                        )}
+                                                    </td>
 
-                                                <td className="text-end">
-                                                    <button
-                                                        className="academic-action-button edit"
-                                                        aria-label={`Edit ${academicYear.name}`}
-                                                        title={`Edit ${academicYear.name}`}
-                                                        onClick={() =>
-                                                            handleEdit(
-                                                                academicYear
-                                                            )
-                                                        }
-                                                    >
-                                                        <i className="bi bi-pencil" aria-hidden="true"></i>
-                                                    </button>
+                                                    <td className="text-end">
+                                                        <button
+                                                            className="academic-action-button edit"
+                                                            aria-label={`Edit ${academicYear.name}`}
+                                                            title={`Edit ${academicYear.name}`}
+                                                            onClick={() =>
+                                                                handleEdit(
+                                                                    academicYear
+                                                                )
+                                                            }
+                                                        >
+                                                            <i className="bi bi-pencil" aria-hidden="true"></i>
+                                                        </button>
 
-                                                    <button
-                                                        className="academic-action-button delete"
-                                                        aria-label={`Delete ${academicYear.name}`}
-                                                        title={`Delete ${academicYear.name}`}
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                academicYear.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <i className="bi bi-trash3" aria-hidden="true"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                        <button
+                                                            className="academic-action-button delete"
+                                                            aria-label={`Delete ${academicYear.name}`}
+                                                            title={`Delete ${academicYear.name}`}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    academicYear.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <i className="bi bi-trash3" aria-hidden="true"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <Pagination
+                                pagination={pagination}
+                                onPageChange={handlePageChange}
+                                onPerPageChange={handlePerPageChange}
+                            />
+                        </>
                     )}
                 </div>
             </div>

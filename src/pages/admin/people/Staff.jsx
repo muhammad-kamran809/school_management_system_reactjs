@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import api from '../../../services/api';
+import Pagination from '../../../components/Pagination';
 
 const initialForm = {
     name: '',
@@ -25,6 +26,14 @@ export default function Staff() {
     const [editingStaff, setEditingStaff] = useState(null);
 
     const [search, setSearch] = useState('');
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [lastPage, setLastPage] = useState(1);
+    const [from, setFrom] = useState(0);
+    const [to, setTo] = useState(0);
 
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
@@ -119,12 +128,57 @@ export default function Staff() {
         });
     };
 
-    const fetchStaff = async () => {
+    const fetchStaff = async (page = currentPage, pageSize = perPage, searchQuery = search) => {
         try {
             setLoading(true);
-            const response = await api.get('/staff');
-            const data = response.data?.data || response.data || [];
-            setStaffList(Array.isArray(data) ? data : []);
+            const params = {
+                page: page,
+                per_page: pageSize,
+            };
+            if (searchQuery && String(searchQuery).trim() !== '') {
+                params.search = String(searchQuery).trim();
+            }
+
+            const response = await api.get('/staff', { params });
+
+            let records = [];
+            let curPage = page;
+            let lastPg = 1;
+            let totalRecords = 0;
+            let fromRecord = null;
+            let toRecord = null;
+
+            if (response.data && response.data.meta) {
+                records = Array.isArray(response.data.data) ? response.data.data : [];
+                curPage = response.data.meta.current_page || page;
+                lastPg = response.data.meta.last_page || 1;
+                totalRecords = response.data.meta.total ?? records.length;
+                fromRecord = response.data.meta.from ?? ((curPage - 1) * pageSize + 1);
+                toRecord = response.data.meta.to ?? (fromRecord + records.length - 1);
+            } else if (response.data && (response.data.current_page || response.data.last_page || response.data.total !== undefined)) {
+                records = Array.isArray(response.data.data) ? response.data.data : [];
+                curPage = response.data.current_page || page;
+                lastPg = response.data.last_page || 1;
+                totalRecords = response.data.total ?? records.length;
+                fromRecord = response.data.from ?? ((curPage - 1) * pageSize + 1);
+                toRecord = response.data.to ?? (fromRecord + records.length - 1);
+            } else {
+                const raw = response.data?.data || response.data || [];
+                const list = Array.isArray(raw) ? raw : [];
+                totalRecords = list.length;
+                lastPg = Math.max(1, Math.ceil(totalRecords / pageSize));
+                curPage = Math.min(page, lastPg);
+                fromRecord = totalRecords > 0 ? (curPage - 1) * pageSize + 1 : 0;
+                toRecord = Math.min(curPage * pageSize, totalRecords);
+                records = list.slice((curPage - 1) * pageSize, curPage * pageSize);
+            }
+
+            setStaffList(records);
+            setCurrentPage(curPage);
+            setLastPage(lastPg);
+            setTotal(totalRecords);
+            setFrom(fromRecord);
+            setTo(toRecord);
         } catch (error) {
             console.error('Fetch staff error:', error);
             handleApiError(error);
@@ -133,8 +187,26 @@ export default function Staff() {
         }
     };
 
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        fetchStaff(newPage, perPage, search);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        setPerPage(newPerPage);
+        setCurrentPage(1);
+        fetchStaff(1, newPerPage, search);
+    };
+
+    const handleSearchChange = (e) => {
+        const val = e.target.value;
+        setSearch(val);
+        setCurrentPage(1);
+        fetchStaff(1, perPage, val);
+    };
+
     useEffect(() => {
-        fetchStaff();
+        fetchStaff(1, perPage, '');
     }, []);
 
     const handleChange = (e) => {
@@ -462,9 +534,7 @@ export default function Staff() {
                                 type="text"
                                 placeholder="Search staff..."
                                 value={search}
-                                onChange={(e) =>
-                                    setSearch(e.target.value)
-                                }
+                                onChange={handleSearchChange}
                             />
 
                         </div>
@@ -535,6 +605,7 @@ export default function Staff() {
 
                     ) : (
 
+                        <>
                         /* TABLE */
                         <div className="table-responsive">
 
@@ -612,7 +683,7 @@ export default function Staff() {
                                                 <td>
                                                     <span className="academic-years-index">
                                                         {String(
-                                                            index + 1
+                                                            (from || ((currentPage - 1) * perPage + 1)) + index
                                                         ).padStart(
                                                             2,
                                                             '0'
@@ -810,6 +881,20 @@ export default function Staff() {
                             </table>
 
                         </div>
+
+                        <Pagination
+                            currentPage={currentPage}
+                            lastPage={lastPage}
+                            total={total}
+                            perPage={perPage}
+                            from={from}
+                            to={to}
+                            onPageChange={handlePageChange}
+                            onPerPageChange={handlePerPageChange}
+                            itemName="staff"
+                            loading={loading}
+                        />
+                        </>
 
                     )}
 

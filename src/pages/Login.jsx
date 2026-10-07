@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
+import { getDashboardRoute } from '../utils/roles';
 
 function Login() {
     const navigate = useNavigate();
-    const { login, loading } = useAuth();
+    const { login, loading, user } = useAuth();
+
+    useEffect(() => {
+        if (user && !loading) {
+            navigate(getDashboardRoute(user), { replace: true });
+        }
+    }, [user, loading, navigate]);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +32,7 @@ function Login() {
                 showConfirmButton: false,
             });
 
-            navigate('/dashboard');
+            navigate(getDashboardRoute(result.user));
         } else {
             Swal.fire({
                 icon: 'error',
@@ -71,16 +79,45 @@ function Login() {
                                         Password
                                     </label>
 
-                                    <input
-                                        type="password"
-                                        className="form-control"
-                                        value={password}
-                                        onChange={(e) =>
-                                            setPassword(e.target.value)
-                                        }
-                                        placeholder="Enter password"
-                                        required
-                                    />
+                                    <div className="input-group">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            className="form-control"
+                                            value={password}
+                                            onChange={(e) =>
+                                                setPassword(e.target.value)
+                                            }
+                                            placeholder="Enter password"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-secondary"
+                                            onClick={() =>
+                                                setShowPassword(
+                                                    (prev) => !prev
+                                                )
+                                            }
+                                            title={
+                                                showPassword
+                                                    ? 'Hide password'
+                                                    : 'Show password'
+                                            }
+                                            aria-label={
+                                                showPassword
+                                                    ? 'Hide password'
+                                                    : 'Show password'
+                                            }
+                                        >
+                                            <i
+                                                className={`bi ${
+                                                    showPassword
+                                                        ? 'bi-eye-slash'
+                                                        : 'bi-eye'
+                                                }`}
+                                            ></i>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <button

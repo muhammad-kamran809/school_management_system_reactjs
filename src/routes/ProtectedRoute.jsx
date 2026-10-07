@@ -1,8 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { hasAnyRole } from '../utils/roles';
+import { hasAnyRole, getDashboardRoute } from '../utils/roles';
 
-function ProtectedRoute({ allowedRoles }) {
+function ProtectedRoute({ allowedRoles, fallback }) {
     const { user, loading } = useAuth();
 
     if (loading) {
@@ -22,7 +22,7 @@ function ProtectedRoute({ allowedRoles }) {
     }
 
     if (allowedRoles && allowedRoles.length > 0 && !hasAnyRole(user, allowedRoles)) {
-        return <Navigate to="/403" replace />;
+        return <Navigate to={fallback || '/403'} replace />;
     }
 
     return <Outlet />;
